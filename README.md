@@ -2,7 +2,6 @@
 
 Oppa Yopa is a browser-based boarding house rent tracker for owners and tenants. It includes tenant and room management, monthly lease calendars, rent payment approval, maintenance reports, announcements, and password management.
 
-<<<<<<< HEAD
 The application is written in plain HTML, CSS, and JavaScript. It has no build step or backend; data is stored in the browser with `localStorage`.
 
 ## Features
@@ -759,8 +758,3 @@ Example payment record:
 - The backup feature exports `db` as JSON.
 - Password data is stored locally and is not production-grade authentication.
 - This project is suitable for a local demo or prototype. Production use requires a backend, authentication, authorization, server-side validation, encrypted transport, and a database.
-=======
-Clean the Structure of the code
-
-Changes some part of the announcement for Tenants.
->>>>>>> 84139ab21f90441f25e22bad942830fce13a91ce
