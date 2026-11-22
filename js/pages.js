@@ -14,6 +14,17 @@ function pgDashboard() {
     if (s.status === 'overdue') overdue++;
   });
   const pct = expected ? Math.min(100, Math.round(collected / expected * 100)) : 0;
+  const overdueList = db.tenants.filter(t => tenantStatus(t).status === 'overdue');
+  const overdueTotal = overdueList.reduce((n, t) => n + tenantStatus(t).balance, 0);
+  const overdueNames = overdueList.slice(0, 2).map(t => `<b>${esc(t.name)}</b>`).join(' and ') + (overdueList.length > 2 ? ` and ${overdueList.length - 2} more` : '');
+  const attention = overdueList.length
+    ? `<div class="attention"><div><h3>${peso(overdueTotal)} is overdue</h3><p>${overdueNames} ${overdueList.length === 1 ? 'has' : 'have'} an overdue balance.</p></div>
+        <div class="actions">${overdueList.length === 1 ? `<button class="btn primary" data-action="recordPay" data-id="${overdueList[0].id}">Record payment</button>` : '<button class="btn primary" data-action="goto" data-id="tenants">View tenants</button>'}</div></div>`
+    : outstanding > 0
+      ? `<div class="attention warn"><div><h3>${peso(outstanding)} still to collect</h3><p>Nothing is overdue yet.</p></div></div>`
+      : db.tenants.length
+        ? '<div class="attention good"><div><h3>Everyone is paid up</h3><p>No balances are waiting to be collected.</p></div></div>'
+        : '';
   const pend = db.payments.filter(p => p.status === 'pending').sort((a, b) => a.date.localeCompare(b.date));
   const open = db.complaints.filter(c => c.status === 'open').sort((a, b) => a.date.localeCompare(b.date));
   const payItems = pend.slice(0, 5).map(p => {
@@ -28,11 +39,12 @@ function pgDashboard() {
   const rows = db.tenants.map(t => {
     const s = tenantStatus(t), i = monthsOf(t).includes(ym) ? monthInfo(t, ym) : null;
     return `<tr><td><b>${esc(t.name)}</b><div class="muted small">${esc(roomName(t.roomId))}</div></td>
-      <td>${stripHTML(t)}</td><td class="num">${i ? `${peso(i.paid)} of ${peso(i.rent)}` : '—'}</td>
+      <td>${stripHTML(t, 6)}</td><td class="num">${i ? `${peso(i.paid)} of ${peso(i.rent)}` : '—'}</td>
       <td class="num">${s.balance > 0 ? peso(s.balance) : '—'}</td><td>${statusBadge(s)}</td>
       <td>${s.balance > 0 ? `<button class="btn sm" data-action="recordPay" data-id="${t.id}">Record payment</button>` : ''}</td></tr>`;
   }).join('');
   return `<div class="page-head"><div><h2>Dashboard</h2><p>${ymLabel(ym)}</p></div></div>
+  ${attention}
   <section class="summary"><div class="sum-main"><div class="k">Collected in ${new Date().toLocaleString('en-US', { month: 'long' })}</div><div class="big">${peso(collected)}</div>
     <div class="meter" role="img" aria-label="${pct}% collected"><i style="width:${pct}%"></i></div><div class="sub">${pct}% of ${peso(expected)} expected</div></div>
     <dl class="sum-facts"><div><dt>Outstanding</dt><dd>${peso(outstanding)}</dd></div><div><dt>Overdue</dt><dd class="${overdue ? 'neg' : ''}">${plural(overdue, 'tenant')}</dd></div><div><dt>Tenants</dt><dd>${db.tenants.length}</dd></div></dl></section>
@@ -73,18 +85,26 @@ function tenantForm(t) {
   if (!db.rooms.length) return '<p>Please add a room first (Rooms page).</p>';
   const first = db.rooms[0];
   return `<form data-form="${edit ? 'editTenant' : 'addTenant'}"><input type="hidden" name="id" value="${edit ? t.id : ''}">
-    <div class="grid2"><div class="field"><label>Full name</label><input name="name" id="tf-name" required value="${edit ? esc(t.name) : ''}"></div>
-    <div class="field"><label>Contact number</label><input name="contact" required value="${edit ? esc(t.contact) : ''}"></div></div>
-    <div class="grid2"><div class="field"><label>Room</label><select name="roomId" id="tf-room">${roomOpts}</select></div>
-    <div class="field"><label>Monthly rent (₱)</label><input name="rent" id="tf-rent" type="number" min="1" step="0.01" required value="${edit ? t.rent : first.rate}"></div></div>
-    <div class="grid2"><div class="field"><label>Deposit (₱)</label><input name="deposit" type="number" min="0" step="0.01" value="${edit ? t.deposit : 0}"></div>
-    <div class="field"><label>Rent due day (1–28)</label><input name="dueDay" type="number" min="1" max="28" required value="${edit ? t.dueDay : 5}"></div></div>
-    <div class="grid2"><div class="field"><label>Lease start date</label><input name="start" type="date" required value="${edit ? t.start : todayStr().slice(0, 8) + '01'}"></div>
-    <div class="field"><label>Lease length (months)</label><input name="months" type="number" min="1" max="60" required value="${edit ? t.months : 12}"></div></div>
-    ${edit ? '' : `<div class="note">The tenant will use these to log in. You can give them the details after saving.</div>
-    <div class="grid2"><div class="field"><label>Username</label><input name="username" id="tf-user" required autocomplete="off"></div>
-    <div class="field"><label>Temporary password</label><input name="password" value="${randPass()}" required minlength="6" autocomplete="off"></div></div>`}
-    <button class="btn primary block">${edit ? 'Save changes' : 'Create tenant & account'}</button></form>`;
+    <fieldset class="form-sec"><legend>Personal</legend>
+      <div class="grid2"><div class="field"><label for="tf-name">Full name</label><input name="name" id="tf-name" required value="${edit ? esc(t.name) : ''}"></div>
+      <div class="field"><label for="tf-contact">Contact number</label><input name="contact" id="tf-contact" required value="${edit ? esc(t.contact) : ''}"></div></div>
+    </fieldset>
+    <fieldset class="form-sec"><legend>Room and rent</legend>
+      <div class="grid2"><div class="field"><label for="tf-room">Room</label><select name="roomId" id="tf-room">${roomOpts}</select></div>
+      <div class="field"><label for="tf-rent">Monthly rent (₱)</label><input name="rent" id="tf-rent" type="number" min="1" step="0.01" required value="${edit ? t.rent : first.rate}"></div></div>
+      <div class="grid2"><div class="field"><label for="tf-dep">Deposit (₱)</label><input name="deposit" id="tf-dep" type="number" min="0" step="0.01" value="${edit ? t.deposit : 0}"></div>
+      <div class="field"><label for="tf-due">Rent due day (1–28)</label><input name="dueDay" id="tf-due" type="number" min="1" max="28" required value="${edit ? t.dueDay : 5}"></div></div>
+    </fieldset>
+    <fieldset class="form-sec"><legend>Lease</legend>
+      <div class="grid2"><div class="field"><label for="tf-start">Lease start date</label><input name="start" id="tf-start" type="date" required value="${edit ? t.start : todayStr().slice(0, 8) + '01'}"></div>
+      <div class="field"><label for="tf-months">Lease length (months)</label><input name="months" id="tf-months" type="number" min="1" max="60" required value="${edit ? t.months : 12}"></div></div>
+    </fieldset>
+    ${edit ? '' : `<fieldset class="form-sec"><legend>Login account</legend>
+      <p class="hint">The tenant uses these to sign in. You can share the details after saving.</p>
+      <div class="grid2"><div class="field"><label for="tf-user">Username</label><input name="username" id="tf-user" required autocomplete="off"></div>
+      <div class="field"><label for="tf-pass">Temporary password</label><input name="password" id="tf-pass" value="${randPass()}" required minlength="6" autocomplete="off"><span class="hint">At least 6 characters.</span></div></div>
+    </fieldset>`}
+    <div class="form-actions"><button class="btn primary block">${edit ? 'Save changes' : 'Create tenant & account'}</button></div></form>`;
 }
 function credDialog(name, username, password) {
   openDlg('Tenant account ready', `<p>Give these login details to <b>${esc(name)}</b>. They can change the password after logging in.</p>
@@ -152,28 +172,76 @@ function payForm(tenantId, isOwner) {
   const t = tenantOf(tenantId) || tenants[0];
   const sel = isOwner ? '' : ui.payMonth;
   const tenantField = isOwner
-    ? `<div class="field"><label>Tenant</label><select id="pf-t" name="tenantId">${db.tenants.map(x => `<option value="${x.id}" ${x.id === t.id ? 'selected' : ''}>${esc(x.name)} – ${esc(roomName(x.roomId))}</option>`).join('')}</select></div>`
+    ? `<div class="field"><label for="pf-t">Tenant</label><select id="pf-t" name="tenantId">${db.tenants.map(x => `<option value="${x.id}" ${x.id === t.id ? 'selected' : ''}>${esc(x.name)} – ${esc(roomName(x.roomId))}</option>`).join('')}</select></div>`
     : `<input type="hidden" id="pf-t" name="tenantId" value="${t.id}">`;
   const methods = isOwner ? ['cash', 'gcash', 'bank'] : channels();
   if (!methods.length) return '<p class="muted">Online payment is not available yet.</p>';
+  const firstMethod = methods[0];
+  const needsRef = firstMethod !== 'cash';
   return `<form data-form="${isOwner ? 'ownerPay' : 'tenantPay'}">${tenantField}
-    <div class="field"><label>Pay for month</label><select id="pf-m" name="month" required>${monthOptions(t, sel)}</select></div>
-    <div class="field"><label>Payment method</label><div class="method-pick">${methods.map((m, i) => `<label><input type="radio" name="method" value="${m}" ${i === 0 ? 'checked' : ''}>${METHOD[m]}</label>`).join('')}</div></div>
-    <div class="grid2"><div class="field"><label>Amount (₱)</label><input id="pf-a" name="amount" type="number" min="1" step="0.01" required><div id="pf-limit" class="muted small"></div></div>
-    <div class="field"><label>Reference no. ${isOwner ? '(optional for cash)' : ''}</label><input name="ref" placeholder="e.g. GCash ref #"></div></div>
-    <div class="field"><label>Note (optional)</label><input name="note" maxlength="120"></div>
-    <button class="btn primary block">${isOwner ? 'Save payment' : 'Submit payment for confirmation'}</button></form>`;
+    <div class="field"><label for="pf-m">${isOwner ? 'Start with month' : 'Pay for month'}</label><select id="pf-m" name="month" required>${monthOptions(t, sel)}</select></div>
+    <div class="field"><label id="pf-method-lbl">Payment method</label><div class="method-pick" role="radiogroup" aria-labelledby="pf-method-lbl">${methods.map((m, i) => `<label><input type="radio" name="method" value="${m}" ${i === 0 ? 'checked' : ''}>${METHOD[m]}</label>`).join('')}</div></div>
+    <div class="field"><label for="pf-a">Amount (₱)</label><input id="pf-a" name="amount" type="number" min="1" step="0.01" required><div id="pf-limit" class="hint"></div></div>
+    <div class="split" id="pf-split" aria-live="polite" hidden></div>
+    <div class="field" id="pf-ref-wrap" ${needsRef ? '' : 'hidden'}><label for="pf-ref">Reference number <span class="req">*</span></label><input id="pf-ref" name="ref" placeholder="e.g. GCash ref #" autocomplete="off" ${needsRef ? 'required' : ''}></div>
+    <div class="field"><label for="pf-note">Note (optional)</label><input id="pf-note" name="note" maxlength="120"></div>
+    <div class="form-actions"><button class="btn primary block">${isOwner ? 'Save payment' : 'Submit payment for confirmation'}</button></div></form>`;
 }
-function syncAmount() {
+// Total still owed for every month up to and including this month.
+function dueTotal(t) {
+  const now = curYM();
+  return +monthsOf(t).filter(m => m <= now).reduce((n, m) => n + availFor(t, m), 0).toFixed(2);
+}
+
+// Where a payment goes: the chosen month first, then the other months in order
+// (same rule as paymentAllocations in core.js).
+function splitPayment(t, month, amount) {
+  const months = monthsOf(t);
+  const order = [month, ...months.filter(m => m !== month)];
+  const lines = [];
+  let left = amount;
+  for (const m of order) {
+    if (left <= 0.004) break;
+    const applied = Math.min(left, availFor(t, m));
+    if (applied > 0) { lines.push({ ym: m, amount: +applied.toFixed(2) }); left = +(left - applied).toFixed(2); }
+  }
+  return lines.sort((a, b) => a.ym.localeCompare(b.ym));
+}
+
+// Show the month-by-month breakdown under the amount.
+function renderSplit() {
+  const box = $('#pf-split'), tid = $('#pf-t'), m = $('#pf-m'), a = $('#pf-a');
+  if (!box || !tid || !m || !a) return;
+  const t = tenantOf(tid.value), amount = +a.value;
+  if (!t || !m.value || !(amount > 0)) { box.hidden = true; box.innerHTML = ''; return; }
+  const lines = splitPayment(t, m.value, amount), now = curYM();
+  const appliedDue = lines.filter(l => l.ym <= now).reduce((n, l) => n + l.amount, 0);
+  const after = Math.max(+(dueTotal(t) - appliedDue).toFixed(2), 0);
+  box.hidden = false;
+  box.innerHTML = lines.map(l => `<div><span>${ymLabel(l.ym)}</span><b>${peso(l.amount)}</b></div>`).join('')
+    + `<div class="total"><span>Balance after</span><b style="color:var(--${after > 0 ? 'overdue-ink' : 'paid-ink'})">${peso(after)}</b></div>`;
+}
+
+// Reference number is only needed for GCash and bank payments.
+function syncRef() {
+  const wrap = $('#pf-ref-wrap'), ref = $('#pf-ref'), checked = document.querySelector('input[name="method"]:checked');
+  if (!wrap || !ref || !checked) return;
+  const needs = checked.value !== 'cash';
+  wrap.hidden = !needs;
+  ref.required = needs;
+}
+
+// useTotalDue: start with everything owed so far instead of one month's balance.
+function syncAmount(useTotalDue = false) {
+  syncRef();
   const tid = $('#pf-t'), m = $('#pf-m'), a = $('#pf-a'); if (!tid || !m || !a) return;
-  const t = tenantOf(tid.value); if (!t || !m.value) { a.value = ''; return; }
-  const av = availFor(t, m.value), max = maxPayableFrom(t, m.value);
-  a.value = av > 0 ? av : '';
+  const t = tenantOf(tid.value); if (!t || !m.value) { a.value = ''; renderSplit(); return; }
+  const av = availFor(t, m.value), max = maxPayableFrom(t, m.value), due = dueTotal(t);
+  a.value = useTotalDue && due > 0 ? due : (av > 0 ? av : '');
   a.max = max;
   const limit = $('#pf-limit');
-  if (limit) limit.textContent = max > av
-    ? `Up to ${peso(max)} can be applied across the lease. Extra covers older unpaid months first, then future months.`
-    : `Remaining balance: ${peso(av)}.`;
+  if (limit) limit.textContent = `You can pay up to ${peso(max)} in total.`;
+  renderSplit();
 }
 
 /* --- Complaints (owner) --- */
@@ -200,15 +268,28 @@ function pgSettings() {
   const s = db.settings;
   return `<div class="page-head"><div><h2>Settings</h2><p>Payment details shown to tenants when they pay.</p></div></div>
   <div class="two"><div class="card"><h3>House & payment details</h3><form data-form="settings">
-    <div class="field"><label>Boarding house name</label><input name="boardName" value="${esc(s.boardName)}" required></div>
-    <div class="grid2"><div class="field"><label>GCash account name</label><input name="gcashName" value="${esc(s.gcashName)}"></div>
-    <div class="field"><label>GCash number</label><input name="gcashNumber" value="${esc(s.gcashNumber)}"></div></div>
-    <div class="grid2"><div class="field"><label>Bank name</label><input name="bankName" value="${esc(s.bankName)}"></div>
-    <div class="field"><label>Account number</label><input name="bankAcct" value="${esc(s.bankAcct)}"></div></div>
-    <div class="field"><label>Account holder</label><input name="bankHolder" value="${esc(s.bankHolder)}"></div>
-    <div class="field"><label>Extra instructions</label><textarea name="instructions" style="min-height:70px">${esc(s.instructions)}</textarea></div>
-    <button class="btn primary">Save settings</button></form></div>
-  <div>${pwCard()}<div class="card"><h3>Data</h3><p class="muted small">Everything is stored in this browser only.</p><div class="actions"><button class="btn" data-action="backup">Download backup (JSON)</button><button class="btn danger" data-action="resetAll">Reset all data</button></div></div></div></div>`;
+    <fieldset class="form-sec"><legend>House</legend>
+      <div class="field"><label for="st-name">Boarding house name</label><input id="st-name" name="boardName" value="${esc(s.boardName)}" required></div>
+    </fieldset>
+    <fieldset class="form-sec"><legend>GCash</legend>
+      <div class="grid2"><div class="field"><label for="st-gn">GCash account name</label><input id="st-gn" name="gcashName" value="${esc(s.gcashName)}"></div>
+      <div class="field"><label for="st-gnum">GCash number</label><input id="st-gnum" name="gcashNumber" value="${esc(s.gcashNumber)}" placeholder="09XX XXX XXXX"></div></div>
+    </fieldset>
+    <fieldset class="form-sec"><legend>Bank transfer</legend>
+      <div class="grid2"><div class="field"><label for="st-bn">Bank name</label><input id="st-bn" name="bankName" value="${esc(s.bankName)}"></div>
+      <div class="field"><label for="st-ba">Account number</label><input id="st-ba" name="bankAcct" value="${esc(s.bankAcct)}"></div></div>
+      <div class="field"><label for="st-bh">Account holder</label><input id="st-bh" name="bankHolder" value="${esc(s.bankHolder)}"></div>
+    </fieldset>
+    <fieldset class="form-sec"><legend>Extra instructions</legend>
+      <div class="field"><label for="st-ins">Shown to tenants on the Pay rent page</label><textarea id="st-ins" name="instructions" style="min-height:70px">${esc(s.instructions)}</textarea></div>
+    </fieldset>
+    <div class="form-actions"><button class="btn primary">Save settings</button></div></form></div>
+  <div>${pwCard()}
+    <div class="card"><h3>Backup</h3><p class="muted small">Everything is stored in this browser only.</p><div class="actions" style="margin-top:12px"><button class="btn" data-action="backup">Download backup (JSON)</button></div></div>
+    <section class="card danger-zone"><h3>Danger zone</h3><p>Resetting erases every tenant, room and payment, and restores the demo data. Download a backup first.</p>
+      <div class="confirm-row"><div class="field"><label for="reset-confirm">Type RESET to confirm</label><input id="reset-confirm" autocomplete="off" placeholder="RESET"></div>
+      <button class="btn danger-solid" id="reset-btn" data-action="resetAll" disabled>Reset all data</button></div></section>
+  </div></div>`;
 }
 function pwCard() {
   return `<div class="card"><h3>Change password</h3><form data-form="changePw">

@@ -1,4 +1,3 @@
-
 'use strict';
 
 /* =====================================================================
@@ -436,7 +435,7 @@ const actions = {
             )
         );
 
-        syncAmount();
+        syncAmount(true);
     },
 
     confirmPay: d => {
@@ -631,11 +630,10 @@ const actions = {
     },
 
     resetAll: () => {
-        if (
-            !confirm(
-                'Erase ALL data and restore the demo data?'
-            )
-        ) {
+        // The button stays disabled until RESET is typed; check again anyway.
+        const typed = $('#reset-confirm');
+
+        if (!typed || typed.value.trim() !== 'RESET') {
             return;
         }
 
@@ -729,6 +727,22 @@ document.addEventListener('input', e => {
         return;
     }
 
+    if (e.target.id === 'reset-confirm') {
+        const resetButton = $('#reset-btn');
+
+        if (resetButton) {
+            resetButton.disabled = e.target.value.trim() !== 'RESET';
+        }
+
+        return;
+    }
+
+    if (e.target.id === 'pf-a') {
+        renderSplit();
+
+        return;
+    }
+
     if (e.target.id === 'tf-name') {
         const usernameInput = $('#tf-user');
 
@@ -778,6 +792,10 @@ document.addEventListener('change', e => {
 
     if (e.target.id === 'pf-m') {
         syncAmount();
+    }
+
+    if (e.target.name === 'method') {
+        syncRef();
     }
 });
 

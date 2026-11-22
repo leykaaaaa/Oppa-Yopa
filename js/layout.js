@@ -1,4 +1,3 @@
-
 'use strict';
 
 /* =====================================================================
@@ -110,7 +109,16 @@ const initials = name =>
    One bar per month for quick payment status overview.
    ===================================================================== */
 
-function stripHTML(tenant, max = 12) {
+// Short month label for the tiles, e.g. "2026-09" -> "Sep".
+const monthShort = ym => {
+    const [year, month] = ym.split('-').map(Number);
+
+    return new Date(year, month - 1, 1).toLocaleString('en-US', {
+        month: 'short'
+    });
+};
+
+function stripHTML(tenant, max = 6) {
     const now = curYM();
 
     const infos = monthsOf(tenant)
@@ -138,38 +146,18 @@ function stripHTML(tenant, max = 12) {
         .map(describeMonth)
         .join('. ');
 
-    const bars = infos.map(info => {
-        const progress = info.partial
-            ? Math.min(
-                100,
-                Math.max(0, info.paid / info.rent * 100)
-            )
-            : 0;
-
-        const color = info.status === 'overdue'
-            ? 'var(--overdue)'
-            : 'var(--partial)';
-
-        const background = info.status === 'overdue'
-            ? 'var(--overdue-bg)'
-            : 'var(--partial-bg)';
-
-        const fill = info.partial
-            ? ` style="background:linear-gradient(to top,${color} ${progress}%,${background} ${progress}%)"`
-            : '';
-
-        return `
-            <i
-                class="m ${info.status}"
-                ${fill}
-                title="${esc(describeMonth(info))}"
-            ></i>
-        `;
-    }).join('');
+    // Labelled tiles. The status symbol is drawn by CSS (.mt::after),
+    // so colour is never the only cue.
+    const bars = infos.map(info => `
+        <span
+            class="mt ${info.status}"
+            title="${esc(describeMonth(info))}"
+        >${monthShort(info.ym)}</span>
+    `).join('');
 
     return `
         <span
-            class="strip"
+            class="strip labelled"
             role="img"
             aria-label="${esc(description)}"
         >
@@ -187,7 +175,7 @@ const legendHTML = () => `
             ['overdue', 'Overdue']
         ].map(([key, label]) => `
             <span class="lg">
-                <i class="m ${key}"></i>
+                <span class="mt ${key}" aria-hidden="true"></span>
                 ${label}
             </span>
         `).join('')}
@@ -417,6 +405,6 @@ function render() {
     labelTables($('#app'));
 
     if (me.role === 'tenant' && ui.page === 'pay') {
-        syncAmount();
+        syncAmount(!ui.payMonth);
     }
 }

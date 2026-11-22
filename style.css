@@ -1,22 +1,34 @@
-/* Oppa Yopa
-   Layout: left rail + one content column. Ink-and-chalk neutrals; colour is reserved for payment status,
-   which is drawn as month bars and tiles so a tenant's history reads at a glance. */
+/* Oppa Yopa — "Bayanihan" edition
+   Layout: left rail + one content column, tuned for a laptop demo (1366x768 up to a 1920 projector).
+   Filipino theme: flag blue / red / sun-yellow as brand accents, a banig (woven mat) texture on the
+   rail and sign-in panel, warm capiz-cream page. Payment-status colours stay semantic and are never
+   reused as decoration, so a tenant's history still reads at a glance. All class names are unchanged. */
 
 :root {
-  --page: #f1f2ee;
+  /* brand */
+  --flag-blue: #0038a8;
+  --flag-blue-hover: #002e8a;
+  --flag-red: #ce1126;
+  --sun: #fcd116;
+  --sun-deep: #e0b000;
+
+  /* neutrals */
+  --page: #f6f2e9;
   --surface: #ffffff;
-  --ink: #16202a;
-  --ink-2: #55626f;
-  --ink-3: #85909d;
-  --line: #dde0da;
-  --soft: #eceee9;
-  --focus: #2f5bea;
+  --ink: #0c1b3a;
+  --ink-2: #4a5568;
+  --ink-3: #657085;
+  --line: #e2ddd0;
+  --soft: #efeadf;
+  --focus: #1d4ed8;
+
+  /* payment status */
   --paid: #1f8a4c;
   --paid-bg: #e2f3e8;
   --paid-ink: #16643a;
   --partial: #d98a0b;
   --partial-bg: #fcefd0;
-  --partial-ink: #7e5200;
+  --partial-ink: #7a4f00;
   --overdue: #cf3a30;
   --overdue-bg: #fce3e0;
   --overdue-ink: #9c2820;
@@ -24,17 +36,55 @@
   --due-bg: #e4eafa;
   --due-ink: #2a468f;
   --later: #c9cdc5;
-  --later-bg: #eceee9;
-  --later-ink: #5f6a76;
+  --later-bg: #ece9df;
+  --later-ink: #5a6472;
+
   --r-lg: 14px;
   --r-md: 10px;
   --r-sm: 8px;
   --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-head: "Bricolage Grotesque", "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* the banig weave, reused on the rail and the sign-in panel */
+  --weave: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.045) 0 10px, transparent 10px 20px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.045) 0 10px, transparent 10px 20px);
+  --tricolor: linear-gradient(90deg, var(--flag-blue) 0 34%, var(--flag-red) 34% 67%, var(--sun) 67% 100%);
 }
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+/* Laptop demo: scale everything up a little on big screens / projectors */
+@media (min-width: 1600px) {
+  html {
+    font-size: 17.5px;
+  }
+}
+
+@media (min-width: 2200px) {
+  html {
+    font-size: 19px;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 1rem/1.55 var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--sun);
+  color: var(--ink);
 }
 
 .skip-link {
@@ -51,18 +101,6 @@
 
 .skip-link:focus {
   top: 12px;
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  margin: 0;
-  background: var(--page);
-  color: var(--ink);
-  font: 15px/1.5 var(--font-body);
-  font-variant-numeric: tabular-nums;
 }
 
 h1,
@@ -88,7 +126,11 @@ textarea {
 }
 
 a {
-  color: var(--due-ink);
+  color: var(--flag-blue);
+}
+
+a:hover {
+  color: var(--flag-blue-hover);
 }
 
 code {
@@ -99,8 +141,15 @@ code {
 }
 
 :focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* focus ring that stays visible on dark surfaces */
+.nav-btn.active:focus-visible,
+.btn.primary:focus-visible,
+.login-art :focus-visible {
+  outline-color: var(--sun);
 }
 
 .muted {
@@ -129,20 +178,30 @@ code {
 /* ---------- Shell ---------- */
 .shell {
   display: grid;
-  grid-template-columns: 248px 1fr;
+  grid-template-columns: 260px 1fr;
   min-height: 100vh;
 }
 
 .side {
   background: var(--surface);
   border-right: 1px solid var(--line);
-  padding: 22px 14px 16px;
+  padding: 26px 14px 14px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
+}
+
+/* tricolor ribbon across the top of the rail */
+.side::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: var(--tricolor);
 }
 
 .brand {
@@ -153,14 +212,14 @@ code {
 }
 
 .brand .logo {
-  width: 34px;
-  height: 34px;
-  color: var(--ink);
+  width: 36px;
+  height: 36px;
+  color: var(--flag-blue);
   flex: none;
 }
 
 .brand b {
-  font: 700 1.15rem var(--font-head);
+  font: 700 1.2rem var(--font-head);
   letter-spacing: -0.02em;
   display: block;
   line-height: 1.1;
@@ -189,10 +248,11 @@ code {
   background: none;
   border: 0;
   color: var(--ink-2);
-  padding: 9px 12px;
+  padding: 10px 12px;
+  min-height: 42px;
   border-radius: var(--r-sm);
   cursor: pointer;
-  font-weight: 550;
+  font-weight: 600;
 }
 
 .nav-btn:hover {
@@ -201,19 +261,20 @@ code {
 }
 
 .nav-btn.active {
-  background: var(--ink);
+  background: var(--flag-blue);
   color: #fff;
+  box-shadow: inset 4px 0 0 var(--sun);
 }
 
 .nav-btn .count {
   margin-left: auto;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
   border-radius: 99px;
-  background: var(--overdue);
+  background: var(--flag-red);
   color: #fff;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
   display: inline-grid;
   place-items: center;
@@ -221,7 +282,7 @@ code {
 
 .nav-btn.active .count {
   background: #fff;
-  color: var(--ink);
+  color: var(--flag-blue);
 }
 
 .side .spacer {
@@ -238,10 +299,11 @@ code {
 }
 
 .who .av {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--soft);
+  background: var(--sun);
+  color: var(--ink);
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -262,10 +324,34 @@ code {
 }
 
 main {
-  padding: 34px 40px 64px;
-  max-width: 1180px;
+  padding: 36px 48px 72px;
+  max-width: 1280px;
   width: 100%;
   min-width: 0;
+}
+
+/* short laptop screens (1366x768): tighten vertical rhythm */
+@media (max-height: 800px) and (min-width: 901px) {
+  .side {
+    padding-top: 20px;
+  }
+
+  .brand {
+    padding-bottom: 12px;
+  }
+
+  .nav-btn {
+    padding: 8px 12px;
+    min-height: 38px;
+  }
+
+  main {
+    padding-top: 26px;
+  }
+
+  .page-head {
+    margin-bottom: 18px;
+  }
 }
 
 .page-head {
@@ -274,19 +360,30 @@ main {
   gap: 12px 20px;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 26px;
 }
 
 .page-head h2 {
-  font-size: 2rem;
-  font-weight: 650;
+  font-size: 2.1rem;
+  font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.1;
 }
 
+/* small flag-colour underline under every page title */
+.page-head h2::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 4px;
+  margin-top: 10px;
+  border-radius: 99px;
+  background: var(--tricolor);
+}
+
 .page-head p {
   color: var(--ink-2);
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 /* ---------- Panels ---------- */
@@ -295,14 +392,15 @@ main {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 20px;
+  padding: 22px;
   margin-bottom: 18px;
   min-width: 0;
+  box-shadow: 0 1px 2px rgba(12, 27, 58, 0.04);
 }
 
 .panel h3,
 .card h3 {
-  font-size: 1.08rem;
+  font-size: 1.1rem;
   font-weight: 650;
   margin-bottom: 14px;
 }
@@ -318,7 +416,7 @@ main {
   gap: 8px 20px;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px 6px;
+  padding: 18px 22px 6px;
 }
 
 .panel-head h3 {
@@ -327,7 +425,7 @@ main {
 
 .two {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
   gap: 18px;
   align-items: start;
 }
@@ -338,7 +436,7 @@ main {
 }
 
 .empty {
-  padding: 32px 20px;
+  padding: 36px 20px;
   text-align: center;
   color: var(--ink-2);
 }
@@ -352,19 +450,20 @@ main {
   border-radius: var(--r-lg);
   margin-bottom: 18px;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(12, 27, 58, 0.04);
 }
 
 .sum-main {
-  padding: 22px 24px;
+  padding: 24px 26px;
 }
 
 .sum-main .k {
   color: var(--ink-2);
-  font-weight: 550;
+  font-weight: 600;
 }
 
 .big {
-  font: 700 clamp(2.2rem, 5vw, 3rem) / 1.05 var(--font-head);
+  font: 700 clamp(2.4rem, 4.4vw, 3.4rem) / 1.05 var(--font-head);
   letter-spacing: -0.035em;
   margin-top: 4px;
 }
@@ -374,12 +473,12 @@ main {
 }
 
 .meter {
-  height: 10px;
+  height: 12px;
   border-radius: 99px;
   background: var(--soft);
   overflow: hidden;
   margin: 16px 0 8px;
-  max-width: 420px;
+  max-width: 460px;
 }
 
 .meter i {
@@ -400,7 +499,7 @@ main {
 
 .sum-facts {
   margin: 0;
-  padding: 22px 24px;
+  padding: 24px 26px;
   border-left: 1px solid var(--line);
   display: grid;
   gap: 14px;
@@ -420,7 +519,7 @@ main {
 
 .sum-facts dd {
   margin: 0;
-  font: 650 1.2rem var(--font-head);
+  font: 650 1.25rem var(--font-head);
   text-align: right;
 }
 
@@ -458,12 +557,12 @@ main {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
 }
 
 th,
 td {
-  padding: 13px 12px;
+  padding: 14px 12px;
   text-align: left;
   vertical-align: middle;
   border-bottom: 1px solid var(--line);
@@ -471,12 +570,12 @@ td {
 
 th:first-child,
 td:first-child {
-  padding-left: 16px;
+  padding-left: 18px;
 }
 
 th:last-child,
 td:last-child {
-  padding-right: 16px;
+  padding-right: 18px;
 }
 
 .nw {
@@ -489,7 +588,7 @@ td:last-child {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 18px 20px;
+  padding: 18px 22px;
   cursor: pointer;
   list-style: none;
 }
@@ -523,7 +622,8 @@ td:last-child {
 
 th {
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   color: var(--ink-3);
   white-space: nowrap;
   padding-top: 10px;
@@ -545,7 +645,7 @@ tr.click {
 }
 
 tr.click:hover td {
-  background: #f8f8f5;
+  background: #fbf8f0;
 }
 
 .actions {
@@ -560,10 +660,10 @@ tr.click:hover td {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px 3px 8px;
+  padding: 4px 11px 4px 9px;
   border-radius: 99px;
-  font-size: 0.78rem;
-  font-weight: 650;
+  font-size: 0.8rem;
+  font-weight: 700;
   white-space: nowrap;
   background: var(--soft);
   color: var(--ink-2);
@@ -610,16 +710,16 @@ tr.click:hover td {
 }
 
 .badge.new {
-  background: var(--ink);
+  background: var(--flag-blue);
   color: #fff;
 }
 
-/* Month bars */
+/* Month bars: slightly bigger than before so they read from across a room */
 .m {
   display: block;
-  width: 13px;
-  height: 22px;
-  border-radius: 3px;
+  width: 15px;
+  height: 26px;
+  border-radius: 4px;
   background: var(--later-bg);
   flex: none;
 }
@@ -630,6 +730,7 @@ tr.click:hover td {
 
 .m.partial {
   background: linear-gradient(to top, var(--partial) 50%, var(--partial-bg) 50%);
+  box-shadow: inset 0 0 0 1px rgba(217, 138, 11, 0.45);
 }
 
 .m.overdue {
@@ -658,16 +759,16 @@ tr.click:hover td {
 }
 
 .strip.big .m {
-  width: 30px;
-  height: 52px;
-  border-radius: 7px;
+  width: 32px;
+  height: 56px;
+  border-radius: 8px;
 }
 
 .legend-row {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 16px;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   color: var(--ink-2);
   align-items: center;
 }
@@ -683,15 +784,15 @@ tr.click:hover td {
 }
 
 .lg .m {
-  width: 9px;
-  height: 14px;
+  width: 10px;
+  height: 16px;
   border-radius: 2px;
 }
 
 /* Lease calendar */
 .cal {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
   gap: 8px;
 }
 
@@ -699,7 +800,7 @@ tr.click:hover td {
   display: grid;
   gap: 1px;
   text-align: left;
-  padding: 10px 12px;
+  padding: 11px 13px;
   border-radius: var(--r-md);
   border: 1.5px solid transparent;
   font: inherit;
@@ -712,13 +813,13 @@ tr.click:hover td {
 }
 
 .mo .my {
-  font-size: 0.74rem;
-  opacity: 0.75;
+  font-size: 0.76rem;
+  opacity: 0.8;
 }
 
 .mo .ms {
-  font-size: 0.8rem;
-  font-weight: 650;
+  font-size: 0.82rem;
+  font-weight: 700;
   margin-top: 6px;
 }
 
@@ -755,6 +856,7 @@ tr.click:hover td {
 
 button.mo {
   cursor: pointer;
+  transition: transform 0.12s, filter 0.12s;
 }
 
 button.mo:hover {
@@ -773,16 +875,18 @@ button.mo:hover {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid var(--line);
+  border: 1px solid #cdd2cb;
   background: var(--surface);
   color: var(--ink);
-  padding: 9px 16px;
+  padding: 10px 18px;
+  min-height: 42px;
   border-radius: var(--r-sm);
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.92rem;
+  font-weight: 650;
+  font-size: 0.95rem;
   line-height: 1.2;
   white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s;
 }
 
 .btn:hover {
@@ -795,23 +899,23 @@ button.mo:hover {
 }
 
 .btn.primary {
-  background: var(--ink);
-  border-color: var(--ink);
+  background: var(--flag-blue);
+  border-color: var(--flag-blue);
   color: #fff;
 }
 
 .btn.primary:hover {
-  background: #2b3948;
+  background: var(--flag-blue-hover);
 }
 
 .btn.ok {
-  background: var(--paid);
-  border-color: var(--paid);
+  background: var(--paid-ink);
+  border-color: var(--paid-ink);
   color: #fff;
 }
 
 .btn.ok:hover {
-  background: #19753f;
+  background: #124f2d;
 }
 
 .btn.danger {
@@ -824,8 +928,9 @@ button.mo:hover {
 }
 
 .btn.sm {
-  padding: 6px 12px;
-  font-size: 0.84rem;
+  padding: 7px 13px;
+  min-height: 36px;
+  font-size: 0.86rem;
 }
 
 .btn.block {
@@ -834,8 +939,8 @@ button.mo:hover {
 
 label {
   display: block;
-  font-size: 0.86rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 650;
   margin-bottom: 5px;
 }
 
@@ -847,13 +952,13 @@ textarea {
   border: 1px solid #cdd2cb;
   border-radius: var(--r-sm);
   background: var(--surface);
-  min-height: 42px;
+  min-height: 44px;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid var(--focus);
+  outline: 3px solid rgba(29, 78, 216, 0.35);
   outline-offset: 0;
   border-color: var(--focus);
 }
@@ -881,11 +986,11 @@ textarea {
 }
 
 .toolbar input {
-  max-width: 300px;
+  max-width: 320px;
 }
 
 .toolbar select {
-  max-width: 190px;
+  max-width: 200px;
 }
 
 .method-pick {
@@ -899,23 +1004,25 @@ textarea {
   min-width: 120px;
   border: 1px solid #cdd2cb;
   border-radius: var(--r-sm);
-  padding: 10px 12px;
+  padding: 11px 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
+  font-weight: 650;
   margin: 0;
 }
 
 .method-pick input {
   width: auto;
   min-height: 0;
+  accent-color: var(--flag-blue);
 }
 
 .method-pick label:has(input:checked) {
-  border-color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--ink);
+  border-color: var(--flag-blue);
+  background: #f1f5ff;
+  box-shadow: inset 0 0 0 1px var(--flag-blue);
 }
 
 .note {
@@ -928,20 +1035,22 @@ textarea {
 }
 
 .alert {
-  padding: 12px 14px;
+  padding: 13px 15px;
   border-radius: var(--r-sm);
   margin-bottom: 18px;
-  font-weight: 550;
+  font-weight: 600;
 }
 
 .alert.red {
   background: var(--overdue-bg);
   color: var(--overdue-ink);
+  box-shadow: inset 4px 0 0 var(--flag-red);
 }
 
 .alert.amber {
   background: var(--partial-bg);
   color: var(--partial-ink);
+  box-shadow: inset 4px 0 0 var(--sun-deep);
 }
 
 /* Details */
@@ -958,7 +1067,7 @@ textarea {
 
 .kv dd {
   margin: 0;
-  font-weight: 550;
+  font-weight: 600;
 }
 
 .facts {
@@ -976,7 +1085,7 @@ textarea {
 
 .facts dd {
   margin: 0;
-  font-weight: 550;
+  font-weight: 600;
 }
 
 .facts .wide {
@@ -984,7 +1093,7 @@ textarea {
 }
 
 .prog {
-  height: 6px;
+  height: 7px;
   border-radius: 99px;
   background: var(--soft);
   margin: 8px 0 5px;
@@ -995,7 +1104,7 @@ textarea {
 .prog i {
   display: block;
   height: 100%;
-  background: var(--ink);
+  background: var(--flag-blue);
   border-radius: 99px;
 }
 
@@ -1024,7 +1133,7 @@ h3.sub {
 }
 
 .num-big {
-  font: 650 1.2rem var(--font-head);
+  font: 650 1.3rem var(--font-head);
   letter-spacing: 0.01em;
   overflow-wrap: anywhere;
 }
@@ -1037,15 +1146,15 @@ h3.sub {
 }
 
 .beds i {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   border: 1.5px solid var(--ink-3);
 }
 
 .beds i.on {
-  background: var(--ink);
-  border-color: var(--ink);
+  background: var(--flag-blue);
+  border-color: var(--flag-blue);
 }
 
 /* Reports and announcements */
@@ -1118,13 +1227,25 @@ h3.sub {
 }
 
 .login-art {
-  background: var(--ink);
+  position: relative;
+  overflow: hidden;
+  background-color: var(--ink);
+  background-image: radial-gradient(circle at 100% 0%, rgba(252, 209, 22, 0.32), transparent 46%), var(--weave);
   color: #fff;
-  padding: 40px 52px;
+  padding: 44px 56px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 40px;
+}
+
+/* tricolor ribbon along the bottom of the panel */
+.login-art::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 8px;
+  background: var(--tricolor);
 }
 
 .login-art .brand {
@@ -1132,15 +1253,15 @@ h3.sub {
 }
 
 .login-art .brand .logo {
-  color: #fff;
+  color: var(--sun);
 }
 
 .login-art .brand small {
-  color: #aab5c1;
+  color: #b9c3d6;
 }
 
 .login-art h1 {
-  font-size: clamp(2rem, 3.6vw, 3rem);
+  font-size: clamp(2.2rem, 3.8vw, 3.4rem);
   line-height: 1.04;
   letter-spacing: -0.035em;
   font-weight: 700;
@@ -1148,18 +1269,18 @@ h3.sub {
 }
 
 .login-art p {
-  color: #b4bdc8;
+  color: #c8d0df;
   margin-top: 16px;
   max-width: 38ch;
-  font-size: 1.02rem;
+  font-size: 1.05rem;
 }
 
 .login-art small {
-  color: #8e99a6;
+  color: #a3aec3;
 }
 
 .login-art .m {
-  background: #2b3948;
+  background: #263555;
 }
 
 .login-art .m.paid {
@@ -1168,6 +1289,7 @@ h3.sub {
 
 .login-art .m.partial {
   background: linear-gradient(to top, #fbbf24 50%, #4a3d1c 50%);
+  box-shadow: none;
 }
 
 .login-art .m.overdue {
@@ -1176,24 +1298,24 @@ h3.sub {
 
 .login-art .m.unpaid {
   background: transparent;
-  box-shadow: inset 0 0 0 2px #7c9cf0;
+  box-shadow: inset 0 0 0 2px #8aa6f5;
 }
 
 .login-art .m.upcoming {
   background: transparent;
-  box-shadow: inset 0 0 0 1.5px #4b5a69;
+  box-shadow: inset 0 0 0 1.5px #53648a;
 }
 
 .login-form {
   align-self: center;
   justify-self: center;
-  width: min(380px, 100%);
+  width: min(400px, 100%);
   padding: 32px 4px;
 }
 
 .login-form h2 {
-  font-size: 1.8rem;
-  font-weight: 650;
+  font-size: 1.9rem;
+  font-weight: 700;
   letter-spacing: -0.025em;
 }
 
@@ -1204,12 +1326,13 @@ h3.sub {
 .demo {
   margin-top: 20px;
   color: var(--ink-2);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 }
 
 .demo summary {
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 650;
+  min-height: 32px;
 }
 
 .demo p {
@@ -1222,19 +1345,19 @@ dialog {
   border: 0;
   border-radius: var(--r-lg);
   padding: 0;
-  width: min(560px, 94vw);
-  box-shadow: 0 24px 70px rgba(10, 20, 30, 0.3);
+  width: min(580px, 94vw);
+  box-shadow: 0 24px 70px rgba(10, 20, 40, 0.34);
   max-height: 92vh;
   background: var(--surface);
   color: var(--ink);
 }
 
 dialog.wide {
-  width: min(780px, 94vw);
+  width: min(800px, 94vw);
 }
 
 dialog::backdrop {
-  background: rgba(14, 22, 30, 0.5);
+  background: rgba(10, 20, 48, 0.55);
 }
 
 .dlg-head {
@@ -1243,6 +1366,8 @@ dialog::backdrop {
   align-items: center;
   padding: 16px 22px;
   border-bottom: 1px solid var(--line);
+  border-top: 5px solid transparent;
+  border-image: var(--tricolor) 1;
   position: sticky;
   top: 0;
   background: var(--surface);
@@ -1250,7 +1375,7 @@ dialog::backdrop {
 }
 
 .dlg-head h3 {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
 }
 
 .x {
@@ -1260,7 +1385,14 @@ dialog::backdrop {
   cursor: pointer;
   color: var(--ink-2);
   line-height: 1;
-  padding: 0 4px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: var(--r-sm);
+}
+
+.x:hover {
+  background: var(--soft);
+  color: var(--ink);
 }
 
 .dlg-body {
@@ -1269,7 +1401,7 @@ dialog::backdrop {
 
 #toast {
   position: fixed;
-  bottom: 20px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -1284,14 +1416,17 @@ dialog::backdrop {
 .toast {
   background: var(--ink);
   color: #fff;
-  padding: 11px 18px;
+  padding: 12px 20px;
   border-radius: var(--r-sm);
-  box-shadow: 0 8px 24px rgba(10, 20, 30, 0.25);
+  box-shadow: 0 8px 24px rgba(10, 20, 40, 0.28);
+  border-left: 5px solid var(--sun);
+  font-weight: 600;
   animation: pop 0.22s;
 }
 
 .toast.err {
-  background: var(--overdue);
+  background: var(--overdue-ink);
+  border-left-color: #fff;
 }
 
 @keyframes pop {
@@ -1307,12 +1442,453 @@ dialog::backdrop {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   .toast {
     animation: none;
   }
 
+  button.mo,
+  .btn {
+    transition: none;
+  }
+
   button.mo:hover {
     transform: none;
+  }
+}
+
+/* =====================================================================
+   UPDATE: attention banner, labelled month tiles, danger zone, cleaner forms
+   All new classes. Nothing above this line was changed.
+   ===================================================================== */
+
+/* ---------- Attention banner (top of Dashboard) ---------- */
+.attention {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 24px;
+  padding: 22px 26px;
+  margin-bottom: 18px;
+  background: var(--overdue-bg);
+  border: 1px solid #efc3be;
+  border-left: 6px solid var(--flag-red);
+  border-radius: var(--r-lg);
+}
+
+.attention h3 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+  letter-spacing: -0.025em;
+  color: var(--overdue-ink);
+}
+
+.attention p {
+  color: var(--ink);
+  max-width: 62ch;
+}
+
+.attention.warn {
+  background: var(--partial-bg);
+  border-color: #ecd49a;
+  border-left-color: var(--sun-deep);
+}
+
+.attention.warn h3 {
+  color: var(--partial-ink);
+}
+
+.attention.good {
+  background: var(--paid-bg);
+  border-color: #b9dfc7;
+  border-left-color: var(--paid);
+}
+
+.attention.good h3 {
+  color: var(--paid-ink);
+}
+
+/* ---------- Stat cards (row under the banner) ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+  box-shadow: 0 1px 2px rgba(12, 27, 58, 0.04);
+  min-width: 0;
+}
+
+.stat .k {
+  display: block;
+  color: var(--ink-2);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.stat .v {
+  display: block;
+  margin: 2px 0;
+  font: 700 1.8rem/1.15 var(--font-head);
+  letter-spacing: -0.03em;
+}
+
+.stat .v.neg {
+  color: var(--overdue-ink);
+}
+
+.stat .s {
+  display: block;
+  color: var(--ink-3);
+  font-size: 0.84rem;
+}
+
+.stat .meter {
+  height: 8px;
+  margin: 10px 0 0;
+}
+
+a.stat,
+button.stat {
+  display: block;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+a.stat:hover,
+button.stat:hover {
+  border-color: var(--flag-blue);
+}
+
+/* ---------- Labelled month tiles ----------
+   <span class="mt paid" title="September 2026: Paid">Sep</span>
+   The status symbol is drawn by CSS, so colour is never the only cue. */
+.mt {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 46px;
+  padding: 6px 0 5px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid transparent;
+  background: var(--later-bg);
+  color: var(--later-ink);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.2;
+  flex: none;
+  cursor: default;
+}
+
+.mt::after {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.1;
+  min-height: 1.1em;
+}
+
+.mt.paid {
+  background: var(--paid-bg);
+  color: var(--paid-ink);
+}
+
+.mt.paid::after {
+  content: "\2713";
+}
+
+.mt.partial {
+  background: var(--partial-bg);
+  color: var(--partial-ink);
+}
+
+.mt.partial::after {
+  content: "\00BD";
+}
+
+.mt.overdue {
+  background: var(--overdue-bg);
+  color: var(--overdue-ink);
+}
+
+.mt.overdue::after {
+  content: "!";
+}
+
+.mt.unpaid {
+  background: var(--surface);
+  border-color: var(--due);
+  color: var(--due-ink);
+}
+
+.mt.unpaid::after {
+  content: "\25CB";
+}
+
+.mt.upcoming {
+  background: transparent;
+  border: 1.5px dashed var(--later);
+  color: var(--ink-3);
+}
+
+.mt.now {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink);
+}
+
+.strip.labelled {
+  gap: 6px;
+}
+
+/* legend version, same symbols */
+.lg .mt {
+  width: 30px;
+  padding: 2px 0;
+  font-size: 0.66rem;
+}
+
+.lg .mt::after {
+  font-size: 0.8rem;
+}
+
+/* ---------- Danger zone (Settings) ---------- */
+.danger-zone {
+  border-color: #efc3be;
+  border-left: 6px solid var(--flag-red);
+  background: #fffaf9;
+}
+
+.danger-zone h3 {
+  color: var(--overdue-ink);
+}
+
+.danger-zone > p {
+  color: var(--ink-2);
+  max-width: 60ch;
+  margin-bottom: 14px;
+}
+
+.confirm-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.confirm-row .field {
+  margin: 0;
+  flex: 1 1 220px;
+  max-width: 280px;
+}
+
+.btn.danger-solid {
+  background: var(--overdue-ink);
+  border-color: var(--overdue-ink);
+  color: #fff;
+}
+
+.btn.danger-solid:hover {
+  background: #7e1f19;
+}
+
+.btn.danger-solid:disabled {
+  background: var(--soft);
+  border-color: var(--line);
+  color: var(--ink-3);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* ---------- Cleaner forms ---------- */
+input::placeholder,
+textarea::placeholder {
+  color: #8a93a3;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: #aab1a8;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: var(--soft);
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23657085' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+}
+
+/* grouped sections: <fieldset class="form-sec"><legend>Personal</legend>...</fieldset> */
+.form-sec {
+  border: 0;
+  margin: 0 0 20px;
+  padding: 0;
+  min-width: 0;
+}
+
+.form-sec + .form-sec {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+
+.form-sec > legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 4px;
+  font: 650 1rem var(--font-head);
+  letter-spacing: -0.01em;
+}
+
+.form-sec > legend + * {
+  clear: both;
+}
+
+.form-sec > .hint {
+  margin: 0 0 12px;
+}
+
+.hint {
+  display: block;
+  color: var(--ink-3);
+  font-size: 0.82rem;
+  font-weight: 400;
+  margin-top: 5px;
+}
+
+label .req {
+  color: var(--flag-red);
+  margin-left: 2px;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 14px;
+}
+
+/* input + button side by side (copy login, show password, regenerate) */
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.input-row input,
+.input-row select {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-row .btn {
+  flex: none;
+}
+
+/* validation */
+.field.invalid input,
+.field.invalid select,
+.field.invalid textarea {
+  border-color: var(--overdue);
+  background: #fffafa;
+}
+
+.field .err-msg {
+  color: var(--overdue-ink);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+/* payment breakdown inside Record payment
+   <div class="split"><div><span>October 2026</span><b>P1,500</b></div> ... <div class="total">...</div></div> */
+.split {
+  background: var(--soft);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 0.92rem;
+}
+
+.split > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+}
+
+.split .total {
+  border-top: 1px solid var(--line);
+  margin-top: 6px;
+  padding-top: 8px;
+}
+
+/* action row at the bottom of a form or dialog */
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 900px) {
+  .stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .grid3 {
+    grid-template-columns: 1fr;
+  }
+
+  .attention {
+    padding: 18px;
+  }
+
+  .attention h3 {
+    font-size: 1.35rem;
+  }
+
+  .form-actions .btn {
+    flex: 1 1 100%;
+  }
+}
+
+/* touch devices and small screens: 44px targets */
+@media (pointer: coarse), (max-width: 900px) {
+  .btn,
+  .btn.sm,
+  .nav-btn,
+  .x {
+    min-height: 44px;
+  }
+
+  .x {
+    min-width: 44px;
   }
 }
 
@@ -1325,11 +1901,12 @@ dialog::backdrop {
   .side {
     position: static;
     height: auto;
+    overflow: visible;
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-areas: "brand out" "nav nav";
     gap: 6px 8px;
-    padding: 12px 14px 8px;
+    padding: 16px 14px 8px;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
@@ -1377,13 +1954,14 @@ dialog::backdrop {
     width: auto;
     flex: none;
     white-space: nowrap;
-    padding: 8px 13px;
+    padding: 8px 14px;
     border-radius: 99px;
     background: var(--soft);
   }
 
   .nav-btn.active {
-    background: var(--ink);
+    background: var(--flag-blue);
+    box-shadow: none;
   }
 
   main {
@@ -1391,7 +1969,7 @@ dialog::backdrop {
   }
 
   .page-head h2 {
-    font-size: 1.6rem;
+    font-size: 1.65rem;
   }
 
   .summary {
@@ -1422,7 +2000,7 @@ dialog::backdrop {
   }
 
   .login-art {
-    padding: 26px 24px;
+    padding: 28px 24px 34px;
     gap: 22px;
   }
 
@@ -1536,7 +2114,7 @@ dialog::backdrop {
   }
 
   .big {
-    font-size: 2.2rem;
+    font-size: 2.3rem;
   }
 
   .cal {
@@ -1570,5 +2148,9 @@ dialog::backdrop {
 
   main {
     padding: 0;
+  }
+
+  .page-head h2::after {
+    display: none;
   }
 }
