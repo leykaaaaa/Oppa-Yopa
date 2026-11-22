@@ -245,7 +245,7 @@ function payForm(tenantId, isOwner) {
     <div class="field"><label id="pf-method-lbl">Payment method</label><div class="method-pick" role="radiogroup" aria-labelledby="pf-method-lbl">${methods.map((m, i) => `<label><input type="radio" name="method" value="${m}" ${i === 0 ? 'checked' : ''}>${METHOD[m]}</label>`).join('')}</div></div>
     <div class="field"><label for="pf-a">Amount (₱)</label><input id="pf-a" name="amount" type="number" min="1" step="0.01" required><div id="pf-limit" class="hint"></div></div>
     <div class="split" id="pf-split" aria-live="polite" hidden></div>
-    <div class="field" id="pf-ref-wrap" ${needsRef ? '' : 'hidden'}><label for="pf-ref">Reference number <span class="req">*</span></label><input id="pf-ref" name="ref" placeholder="e.g. GCash ref #" autocomplete="off" ${needsRef ? 'required' : ''}></div>
+    <div class="field" id="pf-ref-wrap" ${needsRef ? '' : 'hidden'}><label for="pf-ref">Reference number <span class="req">*</span></label><input id="pf-ref" name="ref" placeholder="${firstMethod === 'gcash' ? '13-digit GCash reference' : 'Reference number'}" autocomplete="off" ${firstMethod === 'gcash' ? 'pattern="[0-9]{13}" maxlength="13" title="Enter exactly 13 digits."' : ''} ${needsRef ? 'required' : ''}></div>
     <div class="field"><label for="pf-note">Note (optional)</label><input id="pf-note" name="note" maxlength="120"></div>
     <div class="form-actions"><button class="btn primary block">${isOwner ? 'Save payment' : 'Submit payment for confirmation'}</button></div></form>`;
 }
@@ -289,8 +289,19 @@ function syncRef() {
   const wrap = $('#pf-ref-wrap'), ref = $('#pf-ref'), checked = document.querySelector('input[name="method"]:checked');
   if (!wrap || !ref || !checked) return;
   const needs = checked.value !== 'cash';
+  const isGcash = checked.value === 'gcash';
   wrap.hidden = !needs;
   ref.required = needs;
+  ref.placeholder = isGcash ? '13-digit GCash reference' : 'Reference number';
+  if (isGcash) {
+    ref.setAttribute('pattern', '[0-9]{13}');
+    ref.maxLength = 13;
+    ref.title = 'Enter exactly 13 digits.';
+  } else {
+    ref.removeAttribute('pattern');
+    ref.removeAttribute('maxlength');
+    ref.removeAttribute('title');
+  }
 }
 
 // useTotalDue: start with everything owed so far instead of one month's balance.
@@ -335,11 +346,11 @@ function pgSettings() {
     </fieldset>
     <fieldset class="form-sec"><legend>GCash</legend>
       <div class="grid2"><div class="field"><label for="st-gn">GCash account name</label><input id="st-gn" name="gcashName" value="${esc(s.gcashName)}"></div>
-      <div class="field"><label for="st-gnum">GCash number</label><input id="st-gnum" name="gcashNumber" value="${esc(s.gcashNumber)}" placeholder="09XX XXX XXXX"></div></div>
+      <div class="field"><label for="st-gnum">GCash number</label><input id="st-gnum" name="gcashNumber" type="text" inputmode="numeric" pattern="[0-9]{11}" minlength="11" maxlength="11" title="Enter exactly 11 digits." value="${esc(s.gcashNumber)}" placeholder="11 digits"></div></div>
     </fieldset>
     <fieldset class="form-sec"><legend>Bank transfer</legend>
       <div class="grid2"><div class="field"><label for="st-bn">Bank name</label><input id="st-bn" name="bankName" value="${esc(s.bankName)}"></div>
-      <div class="field"><label for="st-ba">Account number</label><input id="st-ba" name="bankAcct" value="${esc(s.bankAcct)}"></div></div>
+      <div class="field"><label for="st-ba">Account number</label><input id="st-ba" name="bankAcct" type="text" pattern="[0-9]{4}-[0-9]{4}-[0-9]{4}" title="Use the format 1234-5678-9101." value="${esc(s.bankAcct)}" placeholder="1234-5678-9101"></div></div>
       <div class="field"><label for="st-bh">Account holder</label><input id="st-bh" name="bankHolder" value="${esc(s.bankHolder)}"></div>
     </fieldset>
     <fieldset class="form-sec"><legend>Extra instructions</legend>

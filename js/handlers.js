@@ -223,6 +223,14 @@ const forms = {
     },
 
     settings(f) {
+        if (f.gcashNumber && !/^[0-9]{11}$/.test(f.gcashNumber)) {
+            return toast('GCash number must contain exactly 11 digits.', true);
+        }
+
+        if (f.bankAcct && !/^[0-9]{4}-[0-9]{4}-[0-9]{4}$/.test(f.bankAcct)) {
+            return toast('Bank account number must use the format 1234-5678-9101.', true);
+        }
+
         Object.assign(db.settings, f);
 
         save();
@@ -270,7 +278,9 @@ const forms = {
    PAYMENT SUBMISSION
    ===================================================================== */
 
-function submitPayment(f, isOwner) {
+let pendingExtraPayment = null;
+
+function submitPayment(f, isOwner, confirmedExtra = false) {
     const tenant = tenantOf(f.tenantId);
     const amount = +f.amount;
 
@@ -296,6 +306,39 @@ function submitPayment(f, isOwner) {
 
     if (f.method !== 'cash' && !f.ref.trim()) {
         return toast('Please enter the reference number.', true);
+    }
+
+    if (f.method === 'gcash' && !/^[0-9]{13}$/.test(f.ref)) {
+        return toast('GCash reference number must contain exactly 13 digits.', true);
+    }
+
+    const currentDue = dueTotal(tenant);
+
+    if (!isOwner && !confirmedExtra && amount > currentDue + 0.001) {
+        pendingExtraPayment = { form: { ...f }, isOwner };
+        const extra = +(amount - currentDue).toFixed(2);
+
+        openDlg(
+            'Confirm extra payment',
+            `
+                <p>
+                    You're paying ${peso(extra)} more than the current total due.
+                    The extra payment will carry over to the next month.
+                </p>
+
+                <div class="form-actions actions">
+                    <button class="btn" type="button" data-action="cancelExtraPayment">
+                        Cancel
+                    </button>
+
+                    <button class="btn primary" type="button" data-action="continueExtraPayment">
+                        Continue
+                    </button>
+                </div>
+            `
+        );
+
+        return;
     }
 
     db.payments.push({
@@ -335,6 +378,21 @@ function submitPayment(f, isOwner) {
    ===================================================================== */
 
 const actions = {
+    continueExtraPayment: () => {
+        const pending = pendingExtraPayment;
+        pendingExtraPayment = null;
+        closeDlg();
+
+        if (pending) {
+            submitPayment(pending.form, pending.isOwner, true);
+        }
+    },
+
+    cancelExtraPayment: () => {
+        pendingExtraPayment = null;
+        closeDlg();
+    },
+
     nav: d => {
         ui.page = d.id;
         render();
@@ -768,10 +826,12 @@ const actions = {
 
 document.addEventListener('click', e => {
     if (e.target.closest('[data-close]')) {
+        pendingExtraPayment = null;
         return closeDlg();
     }
 
     if (e.target.id === 'dlg') {
+        pendingExtraPayment = null;
         return closeDlg();
     }
 
