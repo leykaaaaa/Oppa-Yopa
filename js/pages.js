@@ -7,8 +7,11 @@ function pgDashboard() {
   const ym = curYM();
   let expected = 0, collected = 0, outstanding = 0, overdue = 0;
   db.tenants.forEach(t => {
-    if (monthsOf(t).includes(ym)) { const i = monthInfo(t, ym); expected += i.rent; collected += Math.min(i.paid, i.rent); }
-    const s = tenantStatus(t); outstanding += s.balance; if (s.status === 'overdue') overdue++;
+    if (monthsOf(t).includes(ym)) { 
+      const i = monthInfo(t, ym); expected += i.rent; collected += Math.min(i.paid, i.rent); 
+    }
+    const s = tenantStatus(t); outstanding += s.balance; 
+    if (s.status === 'overdue') overdue++;
   });
   const pct = expected ? Math.min(100, Math.round(collected / expected * 100)) : 0;
   const pend = db.payments.filter(p => p.status === 'pending').sort((a, b) => a.date.localeCompare(b.date));

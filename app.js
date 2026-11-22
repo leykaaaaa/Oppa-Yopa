@@ -23,22 +23,14 @@ const badge = (st, label) => `<span class="badge ${st}"><i></i>${esc(label || ST
 
 /* ---------- Data layer ---------- */
 function seed() {
-  const start = addMonths(curYM(), -2) + '-01';
   const r1 = { id: uid(), name: 'Room 1', capacity: 2, rate: 2500 };
   const r2 = { id: uid(), name: 'Room 2', capacity: 3, rate: 1800 };
   const owner = { id: uid(), username: 'owner', pass: hash('owner123'), role: 'owner', name: 'Boarding House Owner' };
-  const tu = { id: uid(), username: 'juan', pass: hash('tenant123'), role: 'tenant', name: 'Juan Dela Cruz' };
-  const t = { id: uid(), userId: tu.id, name: 'Juan Dela Cruz', contact: '0917 000 0000', roomId: r1.id, rent: 2500, deposit: 2500, start, months: 12, dueDay: 5 };
-  const now = new Date().toISOString();
-  const pay = (month, amount, method, ref, status) => ({ id: uid(), tenantId: t.id, month, amount, method, ref, note: '', status, date: now, by: method === 'cash' ? 'owner' : 'tenant' });
   return {
-    users: [owner, tu],
+    users: [owner],
     rooms: [r1, r2],
-    tenants: [t],
-    payments: [
-      pay(addMonths(curYM(), -2), 2500, 'cash', '', 'confirmed'),
-      pay(addMonths(curYM(), -1), 1000, 'gcash', '09171234567', 'confirmed')
-    ],
+    tenants: [],
+    payments: [],
     complaints: [],
     announcements: [{ id: uid(), title: 'Welcome to Oppa Yopa', message: 'Notices from your owner will show up here.', priority: 'normal', roomId: null, date: now }],
     settings: { boardName: 'Oppa Yopa Dorm', gcashName: '', gcashNumber: '', bankName: '', bankAcct: '', bankHolder: '', instructions: '' }
@@ -174,7 +166,7 @@ function loginView() {
       <div class="field"><label for="lu">Username</label><input id="lu" name="username" autocomplete="username" required autofocus></div>
       <div class="field"><label for="lp">Password</label><input id="lp" name="password" type="password" autocomplete="current-password" required></div>
       <button class="btn primary block">Sign in</button>
-      <details class="demo"><summary>Demo accounts</summary><p>Owner: <code>owner</code> / <code>owner123</code><br>Tenant: <code>juan</code> / <code>tenant123</code></p></details>
+      <details class="demo"><summary>Demo account</summary><p>Owner: <code>owner</code> / <code>owner123</code></p></details>
     </form></div>`;
 }
 
