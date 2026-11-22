@@ -1,4 +1,4 @@
-/* Oppa Yopa — "Bayanihan" edition
+/* Oppa Yopa — "Bayanihan" edition (matches the redesigned mockup, blue / yellow / red / white)
    Layout: left rail + one content column, tuned for a laptop demo (1366x768 up to a 1920 projector).
    Filipino theme: flag blue / red / sun-yellow as brand accents, a banig (woven mat) texture on the
    rail and sign-in panel, warm capiz-cream page. Payment-status colours stay semantic and are never
@@ -13,30 +13,30 @@
   --sun-deep: #e0b000;
 
   /* neutrals */
-  --page: #f6f2e9;
+  --page: #f3f6fc;
   --surface: #ffffff;
-  --ink: #0c1b3a;
-  --ink-2: #4a5568;
-  --ink-3: #657085;
-  --line: #e2ddd0;
-  --soft: #efeadf;
+  --ink: #0b1b3f;
+  --ink-2: #44506b;
+  --ink-3: #5b6783;
+  --line: #dbe3f2;
+  --soft: #e9eef9;
   --focus: #1d4ed8;
 
   /* payment status */
-  --paid: #1f8a4c;
-  --paid-bg: #e2f3e8;
-  --paid-ink: #16643a;
-  --partial: #d98a0b;
-  --partial-bg: #fcefd0;
-  --partial-ink: #7a4f00;
-  --overdue: #cf3a30;
-  --overdue-bg: #fce3e0;
-  --overdue-ink: #9c2820;
-  --due: #3b5fc4;
-  --due-bg: #e4eafa;
-  --due-ink: #2a468f;
+  --paid: #0038a8;
+  --paid-bg: #e3ebfb;
+  --paid-ink: #002e8a;
+  --partial: #fcd116;
+  --partial-bg: #fff4c2;
+  --partial-ink: #5e4700;
+  --overdue: #ce1126;
+  --overdue-bg: #fde5e8;
+  --overdue-ink: #a50d1f;
+  --due: #4a74d9;
+  --due-bg: #eaf0fc;
+  --due-ink: #1d4aa8;
   --later: #c9cdc5;
-  --later-bg: #ece9df;
+  --later-bg: #e9eef9;
   --later-ink: #5a6472;
 
   --r-lg: 14px;
@@ -78,7 +78,7 @@ body {
   margin: 0;
   background: var(--page);
   color: var(--ink);
-  font: 1rem/1.55 var(--font-body);
+  font: 0.9375rem/1.5 var(--font-body);
   font-variant-numeric: tabular-nums;
 }
 
@@ -178,14 +178,14 @@ code {
 /* ---------- Shell ---------- */
 .shell {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 248px 1fr;
   min-height: 100vh;
 }
 
 .side {
   background: var(--surface);
   border-right: 1px solid var(--line);
-  padding: 26px 14px 14px;
+  padding: 24px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -212,14 +212,14 @@ code {
 }
 
 .brand .logo {
-  width: 36px;
-  height: 36px;
-  color: var(--flag-blue);
+  width: 40px;
+  height: 40px;
+  color: var(--ink);
   flex: none;
 }
 
 .brand b {
-  font: 700 1.2rem var(--font-head);
+  font: 800 1.1rem var(--font-head);
   letter-spacing: -0.02em;
   display: block;
   line-height: 1.1;
@@ -248,8 +248,9 @@ code {
   background: none;
   border: 0;
   color: var(--ink-2);
-  padding: 10px 12px;
-  min-height: 42px;
+  padding: 10px 14px;
+  min-height: 44px;
+  font-size: 0.9375rem;
   border-radius: var(--r-sm);
   cursor: pointer;
   font-weight: 600;
@@ -261,7 +262,7 @@ code {
 }
 
 .nav-btn.active {
-  background: var(--flag-blue);
+  background: var(--ink);
   color: #fff;
   box-shadow: inset 4px 0 0 var(--sun);
 }
@@ -282,7 +283,7 @@ code {
 
 .nav-btn.active .count {
   background: #fff;
-  color: var(--flag-blue);
+  color: var(--ink);
 }
 
 .side .spacer {
@@ -302,7 +303,7 @@ code {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--sun);
+  background: var(--soft);
   color: var(--ink);
   display: grid;
   place-items: center;
@@ -324,7 +325,7 @@ code {
 }
 
 main {
-  padding: 36px 48px 72px;
+  padding: 36px 40px 72px;
   max-width: 1280px;
   width: 100%;
   min-width: 0;
@@ -364,8 +365,8 @@ main {
 }
 
 .page-head h2 {
-  font-size: 2.1rem;
-  font-weight: 700;
+  font-size: 2.25rem;
+  font-weight: 800;
   letter-spacing: -0.025em;
   line-height: 1.1;
 }
@@ -392,7 +393,7 @@ main {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 22px;
+  padding: 24px;
   margin-bottom: 18px;
   min-width: 0;
   box-shadow: 0 1px 2px rgba(12, 27, 58, 0.04);
@@ -400,8 +401,8 @@ main {
 
 .panel h3,
 .card h3 {
-  font-size: 1.1rem;
-  font-weight: 650;
+  font-size: 1.2rem;
+  font-weight: 800;
   margin-bottom: 14px;
 }
 
@@ -623,8 +624,8 @@ td:last-child {
 th {
   font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--ink-3);
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
   white-space: nowrap;
   padding-top: 10px;
   padding-bottom: 10px;
@@ -645,7 +646,7 @@ tr.click {
 }
 
 tr.click:hover td {
-  background: #fbf8f0;
+  background: #f3f6fc;
 }
 
 .actions {
@@ -660,7 +661,7 @@ tr.click:hover td {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 11px 4px 9px;
+  padding: 6px 12px 6px 10px;
   border-radius: 99px;
   font-size: 0.8rem;
   font-weight: 700;
@@ -710,7 +711,7 @@ tr.click:hover td {
 }
 
 .badge.new {
-  background: var(--flag-blue);
+  background: var(--ink);
   color: #fff;
 }
 
@@ -878,12 +879,12 @@ button.mo:hover {
   border: 1px solid #cdd2cb;
   background: var(--surface);
   color: var(--ink);
-  padding: 10px 18px;
-  min-height: 42px;
+  padding: 0 22px;
+  min-height: 48px;
   border-radius: var(--r-sm);
   cursor: pointer;
-  font-weight: 650;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 0.9375rem;
   line-height: 1.2;
   white-space: nowrap;
   transition: background 0.12s, border-color 0.12s;
@@ -899,13 +900,13 @@ button.mo:hover {
 }
 
 .btn.primary {
-  background: var(--flag-blue);
-  border-color: var(--flag-blue);
+  background: var(--ink);
+  border-color: var(--ink);
   color: #fff;
 }
 
 .btn.primary:hover {
-  background: var(--flag-blue-hover);
+  background: #2b3948;
 }
 
 .btn.ok {
@@ -928,8 +929,8 @@ button.mo:hover {
 }
 
 .btn.sm {
-  padding: 7px 13px;
-  min-height: 36px;
+  padding: 0 14px;
+  min-height: 40px;
   font-size: 0.86rem;
 }
 
@@ -939,8 +940,8 @@ button.mo:hover {
 
 label {
   display: block;
-  font-size: 0.88rem;
-  font-weight: 650;
+  font-size: 0.875rem;
+  font-weight: 700;
   margin-bottom: 5px;
 }
 
@@ -952,7 +953,7 @@ textarea {
   border: 1px solid #cdd2cb;
   border-radius: var(--r-sm);
   background: var(--surface);
-  min-height: 44px;
+  min-height: 48px;
 }
 
 input:focus,
@@ -1004,25 +1005,26 @@ textarea {
   min-width: 120px;
   border: 1px solid #cdd2cb;
   border-radius: var(--r-sm);
-  padding: 11px 12px;
+  padding: 0 14px;
+  min-height: 52px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 650;
+  gap: 10px;
+  font-weight: 700;
   margin: 0;
 }
 
 .method-pick input {
   width: auto;
   min-height: 0;
-  accent-color: var(--flag-blue);
+  accent-color: var(--ink);
 }
 
 .method-pick label:has(input:checked) {
-  border-color: var(--flag-blue);
-  background: #f1f5ff;
-  box-shadow: inset 0 0 0 1px var(--flag-blue);
+  border-color: var(--ink);
+  background: var(--page);
+  box-shadow: inset 0 0 0 1px var(--ink);
 }
 
 .note {
@@ -1104,7 +1106,7 @@ textarea {
 .prog i {
   display: block;
   height: 100%;
-  background: var(--flag-blue);
+  background: var(--ink);
   border-radius: 99px;
 }
 
@@ -1153,8 +1155,8 @@ h3.sub {
 }
 
 .beds i.on {
-  background: var(--flag-blue);
-  border-color: var(--flag-blue);
+  background: var(--ink);
+  border-color: var(--ink);
 }
 
 /* Reports and announcements */
@@ -1460,424 +1462,6 @@ dialog::backdrop {
   }
 }
 
-/* =====================================================================
-   UPDATE: attention banner, labelled month tiles, danger zone, cleaner forms
-   All new classes. Nothing above this line was changed.
-   ===================================================================== */
-
-/* ---------- Attention banner (top of Dashboard) ---------- */
-.attention {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px 24px;
-  padding: 22px 26px;
-  margin-bottom: 18px;
-  background: var(--overdue-bg);
-  border: 1px solid #efc3be;
-  border-left: 6px solid var(--flag-red);
-  border-radius: var(--r-lg);
-}
-
-.attention h3 {
-  margin: 0 0 4px;
-  font-size: 1.6rem;
-  letter-spacing: -0.025em;
-  color: var(--overdue-ink);
-}
-
-.attention p {
-  color: var(--ink);
-  max-width: 62ch;
-}
-
-.attention.warn {
-  background: var(--partial-bg);
-  border-color: #ecd49a;
-  border-left-color: var(--sun-deep);
-}
-
-.attention.warn h3 {
-  color: var(--partial-ink);
-}
-
-.attention.good {
-  background: var(--paid-bg);
-  border-color: #b9dfc7;
-  border-left-color: var(--paid);
-}
-
-.attention.good h3 {
-  color: var(--paid-ink);
-}
-
-/* ---------- Stat cards (row under the banner) ---------- */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 18px;
-}
-
-.stat {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 18px 20px;
-  box-shadow: 0 1px 2px rgba(12, 27, 58, 0.04);
-  min-width: 0;
-}
-
-.stat .k {
-  display: block;
-  color: var(--ink-2);
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.stat .v {
-  display: block;
-  margin: 2px 0;
-  font: 700 1.8rem/1.15 var(--font-head);
-  letter-spacing: -0.03em;
-}
-
-.stat .v.neg {
-  color: var(--overdue-ink);
-}
-
-.stat .s {
-  display: block;
-  color: var(--ink-3);
-  font-size: 0.84rem;
-}
-
-.stat .meter {
-  height: 8px;
-  margin: 10px 0 0;
-}
-
-a.stat,
-button.stat {
-  display: block;
-  width: 100%;
-  text-align: left;
-  color: inherit;
-  text-decoration: none;
-  font: inherit;
-  cursor: pointer;
-}
-
-a.stat:hover,
-button.stat:hover {
-  border-color: var(--flag-blue);
-}
-
-/* ---------- Labelled month tiles ----------
-   <span class="mt paid" title="September 2026: Paid">Sep</span>
-   The status symbol is drawn by CSS, so colour is never the only cue. */
-.mt {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  width: 46px;
-  padding: 6px 0 5px;
-  border-radius: var(--r-sm);
-  border: 1.5px solid transparent;
-  background: var(--later-bg);
-  color: var(--later-ink);
-  font-size: 0.74rem;
-  font-weight: 700;
-  line-height: 1.2;
-  flex: none;
-  cursor: default;
-}
-
-.mt::after {
-  font-size: 1rem;
-  font-weight: 800;
-  line-height: 1.1;
-  min-height: 1.1em;
-}
-
-.mt.paid {
-  background: var(--paid-bg);
-  color: var(--paid-ink);
-}
-
-.mt.paid::after {
-  content: "\2713";
-}
-
-.mt.partial {
-  background: var(--partial-bg);
-  color: var(--partial-ink);
-}
-
-.mt.partial::after {
-  content: "\00BD";
-}
-
-.mt.overdue {
-  background: var(--overdue-bg);
-  color: var(--overdue-ink);
-}
-
-.mt.overdue::after {
-  content: "!";
-}
-
-.mt.unpaid {
-  background: var(--surface);
-  border-color: var(--due);
-  color: var(--due-ink);
-}
-
-.mt.unpaid::after {
-  content: "\25CB";
-}
-
-.mt.upcoming {
-  background: transparent;
-  border: 1.5px dashed var(--later);
-  color: var(--ink-3);
-}
-
-.mt.now {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink);
-}
-
-.strip.labelled {
-  gap: 6px;
-}
-
-/* legend version, same symbols */
-.lg .mt {
-  width: 30px;
-  padding: 2px 0;
-  font-size: 0.66rem;
-}
-
-.lg .mt::after {
-  font-size: 0.8rem;
-}
-
-/* ---------- Danger zone (Settings) ---------- */
-.danger-zone {
-  border-color: #efc3be;
-  border-left: 6px solid var(--flag-red);
-  background: #fffaf9;
-}
-
-.danger-zone h3 {
-  color: var(--overdue-ink);
-}
-
-.danger-zone > p {
-  color: var(--ink-2);
-  max-width: 60ch;
-  margin-bottom: 14px;
-}
-
-.confirm-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: flex-end;
-}
-
-.confirm-row .field {
-  margin: 0;
-  flex: 1 1 220px;
-  max-width: 280px;
-}
-
-.btn.danger-solid {
-  background: var(--overdue-ink);
-  border-color: var(--overdue-ink);
-  color: #fff;
-}
-
-.btn.danger-solid:hover {
-  background: #7e1f19;
-}
-
-.btn.danger-solid:disabled {
-  background: var(--soft);
-  border-color: var(--line);
-  color: var(--ink-3);
-  cursor: not-allowed;
-  opacity: 1;
-}
-
-/* ---------- Cleaner forms ---------- */
-input::placeholder,
-textarea::placeholder {
-  color: #8a93a3;
-}
-
-input:hover,
-select:hover,
-textarea:hover {
-  border-color: #aab1a8;
-}
-
-input:disabled,
-select:disabled,
-textarea:disabled {
-  background: var(--soft);
-  color: var(--ink-3);
-  cursor: not-allowed;
-}
-
-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 36px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23657085' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 13px center;
-}
-
-/* grouped sections: <fieldset class="form-sec"><legend>Personal</legend>...</fieldset> */
-.form-sec {
-  border: 0;
-  margin: 0 0 20px;
-  padding: 0;
-  min-width: 0;
-}
-
-.form-sec + .form-sec {
-  border-top: 1px solid var(--line);
-  padding-top: 18px;
-}
-
-.form-sec > legend {
-  float: left;
-  width: 100%;
-  padding: 0;
-  margin: 0 0 4px;
-  font: 650 1rem var(--font-head);
-  letter-spacing: -0.01em;
-}
-
-.form-sec > legend + * {
-  clear: both;
-}
-
-.form-sec > .hint {
-  margin: 0 0 12px;
-}
-
-.hint {
-  display: block;
-  color: var(--ink-3);
-  font-size: 0.82rem;
-  font-weight: 400;
-  margin-top: 5px;
-}
-
-label .req {
-  color: var(--flag-red);
-  margin-left: 2px;
-}
-
-.grid3 {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 14px;
-}
-
-/* input + button side by side (copy login, show password, regenerate) */
-.input-row {
-  display: flex;
-  gap: 8px;
-}
-
-.input-row input,
-.input-row select {
-  flex: 1;
-  min-width: 0;
-}
-
-.input-row .btn {
-  flex: none;
-}
-
-/* validation */
-.field.invalid input,
-.field.invalid select,
-.field.invalid textarea {
-  border-color: var(--overdue);
-  background: #fffafa;
-}
-
-.field .err-msg {
-  color: var(--overdue-ink);
-  font-size: 0.82rem;
-  font-weight: 600;
-  margin-top: 5px;
-}
-
-/* payment breakdown inside Record payment
-   <div class="split"><div><span>October 2026</span><b>P1,500</b></div> ... <div class="total">...</div></div> */
-.split {
-  background: var(--soft);
-  border-radius: var(--r-md);
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  font-size: 0.92rem;
-}
-
-.split > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 3px 0;
-}
-
-.split .total {
-  border-top: 1px solid var(--line);
-  margin-top: 6px;
-  padding-top: 8px;
-}
-
-/* action row at the bottom of a form or dialog */
-.form-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-}
-
-@media (max-width: 900px) {
-  .stats {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .grid3 {
-    grid-template-columns: 1fr;
-  }
-
-  .attention {
-    padding: 18px;
-  }
-
-  .attention h3 {
-    font-size: 1.35rem;
-  }
-
-  .form-actions .btn {
-    flex: 1 1 100%;
-  }
-}
-
 /* touch devices and small screens: 44px targets */
 @media (pointer: coarse), (max-width: 900px) {
   .btn,
@@ -1960,7 +1544,7 @@ label .req {
   }
 
   .nav-btn.active {
-    background: var(--flag-blue);
+    background: var(--ink);
     box-shadow: none;
   }
 
@@ -2154,3 +1738,620 @@ label .req {
     display: none;
   }
 }
+
+/* ============================================================
+   Components your JS already uses, styled to match the mockup
+   ============================================================ */
+
+[hidden] {
+  display: none !important;
+}
+
+/* "Needs attention" strip on the owner dashboard (.attention, .warn, .good) */
+.attention {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 16px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid #efc3be;
+  border-radius: var(--r-lg);
+  padding: 18px 22px;
+  margin-bottom: 18px;
+}
+
+.attention::before {
+  content: "!";
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  font: 800 1.2rem var(--font-head);
+  background: var(--overdue-bg);
+  color: var(--overdue-ink);
+}
+
+.attention > div:first-of-type {
+  flex: 1 1 280px;
+}
+
+.attention h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.attention p {
+  color: var(--ink-2);
+  margin-top: 2px;
+}
+
+.attention.warn {
+  border-color: #ecd49a;
+}
+
+.attention.warn::before {
+  background: var(--partial-bg);
+  color: var(--partial-ink);
+}
+
+.attention.good {
+  border-color: #b9dfc6;
+}
+
+.attention.good::before {
+  content: "\2713";
+  background: var(--paid-bg);
+  color: var(--paid-ink);
+}
+
+/* Four summary cards (dashboard) */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px 22px;
+  box-shadow: 0 1px 2px rgba(12, 27, 58, 0.04);
+}
+
+.kpi .k {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.kpi .v {
+  font: 800 2.15rem/1.1 var(--font-head);
+  letter-spacing: -0.02em;
+  margin-top: 6px;
+}
+
+.kpi .v small {
+  font: 600 1.05rem var(--font-body);
+  color: var(--ink-2);
+  letter-spacing: 0;
+}
+
+.kpi .v.neg {
+  color: var(--overdue-ink);
+}
+
+.kpi .s {
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+  margin-top: 4px;
+}
+
+.kpi .meter {
+  margin: 12px 0 0;
+  max-width: none;
+}
+
+/* Labelled month tiles (stripHTML and legendHTML in layout.js).
+   The symbol comes from ::after so colour is never the only cue. */
+.strip.labelled {
+  display: inline-flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.mt {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--r-md);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  background: var(--later-bg);
+  color: var(--later-ink);
+  flex: none;
+}
+
+.mt::after {
+  content: "";
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.mt.paid {
+  background: var(--paid-ink);
+  color: #fff;
+}
+
+.mt.paid::after {
+  content: "\2713";
+}
+
+.mt.partial {
+  background: var(--partial-bg);
+  color: var(--partial-ink);
+  box-shadow: inset 0 0 0 1.5px var(--partial);
+}
+
+.mt.partial::after {
+  content: "\00BD";
+}
+
+.mt.overdue {
+  background: var(--overdue);
+  color: #fff;
+}
+
+.mt.overdue::after {
+  content: "!";
+}
+
+.mt.unpaid {
+  background: var(--surface);
+  color: var(--due-ink);
+  box-shadow: inset 0 0 0 2px var(--due);
+}
+
+.mt.unpaid::after {
+  content: "\2022";
+}
+
+.mt.upcoming {
+  background: transparent;
+  color: var(--ink-3);
+  box-shadow: inset 0 0 0 1.5px var(--later);
+}
+
+.lg .mt {
+  width: 12px;
+  height: 16px;
+  border-radius: 3px;
+  font-size: 0;
+}
+
+.lg .mt::after {
+  content: none;
+}
+
+/* Forms: grouped sections, hints, payment split */
+.form-sec {
+  border: 0;
+  margin: 0 0 18px;
+  padding: 0;
+  min-width: 0;
+}
+
+.form-sec legend {
+  padding: 0;
+  margin-bottom: 10px;
+  font: 800 0.75rem var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.hint {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+  margin-top: 5px;
+}
+
+p.hint {
+  margin: 0 0 10px;
+}
+
+.req {
+  color: var(--overdue-ink);
+}
+
+.form-actions {
+  margin-top: 6px;
+}
+
+.split {
+  background: var(--page);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.split div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.split .total {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+  margin-top: 2px;
+  font-weight: 700;
+}
+
+/* Settings: danger zone */
+.danger-zone {
+  border-color: #efc3be;
+}
+
+.danger-zone h3 {
+  color: var(--overdue-ink);
+}
+
+.danger-zone p {
+  color: var(--ink-2);
+  margin-bottom: 14px;
+}
+
+.confirm-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.confirm-row .field {
+  flex: 1 1 180px;
+  margin: 0;
+}
+
+.btn.danger-solid {
+  background: var(--overdue-ink);
+  border-color: var(--overdue-ink);
+  color: #fff;
+}
+
+.btn.danger-solid:hover {
+  background: #7f1f19;
+}
+
+.btn.danger-solid:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Rooms: one card per room, one slot per bed */
+.room-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.rooms-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+}
+
+.room-layout > .card {
+  flex: 1 1 300px;
+  margin: 0;
+}
+
+.room {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 22px;
+  box-shadow: 0 1px 2px rgba(12, 27, 58, 0.04);
+}
+
+.room-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.room-head h4 {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.slots {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  border: 1.5px dashed var(--later);
+  color: var(--ink-3);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.slot.on {
+  border: 0;
+  background: var(--page);
+  color: var(--ink);
+}
+
+.slot.on b {
+  flex: 1;
+}
+
+.slot .av {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex: none;
+}
+
+/* Tenant phone: bottom tab bar (hidden on laptops) */
+.tabbar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .shell.has-tabbar .nav {
+    display: none;
+  }
+
+  .tabbar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 50;
+    height: 68px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    padding: 6px 2px 8px;
+  }
+
+  .tabbar button {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 0;
+    background: none;
+    color: var(--ink-2);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .tabbar .fa-solid {
+    font-size: 18px;
+  }
+
+  .tabbar .active {
+    color: var(--ink);
+    font-weight: 800;
+  }
+
+  .tabbar .count {
+    position: absolute;
+    top: 2px;
+    left: calc(50% + 6px);
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 99px;
+    background: var(--flag-red);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+  }
+
+  .shell.has-tabbar main {
+    padding-bottom: 96px;
+  }
+}
+
+/* ============================================================
+   Pambansa palette: blue, yellow, red and white
+   Status colours follow the flag too: paid = blue, partial = yellow,
+   overdue = red, unpaid = outlined. Symbols (check, half, !) and
+   labels carry the meaning as well, so colour is never the only cue.
+   To go back to green for "paid", change --paid, --paid-bg, --paid-ink above.
+   ============================================================ */
+
+/* Primary actions are flag blue */
+.btn.primary {
+  background: var(--flag-blue);
+  border-color: var(--flag-blue);
+  color: #fff;
+}
+
+.btn.primary:hover {
+  background: var(--flag-blue-hover);
+}
+
+.btn.ok {
+  background: var(--flag-blue);
+  border-color: var(--flag-blue);
+}
+
+.btn.ok:hover {
+  background: var(--flag-blue-hover);
+}
+
+.method-pick input {
+  accent-color: var(--flag-blue);
+}
+
+.method-pick label:has(input:checked) {
+  border-color: var(--flag-blue);
+  background: #eef3ff;
+  box-shadow: inset 0 0 0 1px var(--flag-blue);
+}
+
+.prog i,
+.beds i.on {
+  background: var(--flag-blue);
+}
+
+.beds i.on {
+  border-color: var(--flag-blue);
+}
+
+.badge.new {
+  background: var(--flag-blue);
+}
+
+.slot .av {
+  background: var(--flag-blue);
+}
+
+/* The rail is a solid flag-blue column with a white / red / yellow ribbon */
+.side {
+  background: var(--flag-blue);
+  border-right: 0;
+}
+
+.side::before {
+  background: linear-gradient(90deg, #fff 0 34%, var(--flag-red) 34% 67%, var(--sun) 67% 100%);
+}
+
+.side .brand .logo {
+  color: #fff;
+}
+
+.side .brand b {
+  color: #fff;
+}
+
+.side .brand small {
+  color: #c9d6f5;
+}
+
+.side .nav-btn {
+  color: #e3ebff;
+}
+
+.side .nav-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.side .nav-btn.active {
+  background: #fff;
+  color: var(--flag-blue);
+  box-shadow: inset 4px 0 0 var(--sun);
+}
+
+.side .nav-btn .count,
+.side .nav-btn.active .count {
+  background: var(--flag-red);
+  color: #fff;
+}
+
+.side .who {
+  border-top-color: rgba(255, 255, 255, 0.24);
+}
+
+.side .who b {
+  color: #fff;
+}
+
+.side .who small {
+  color: #c9d6f5;
+}
+
+.side .who .av {
+  background: var(--sun);
+  color: var(--ink);
+}
+
+.side :focus-visible {
+  outline-color: var(--sun);
+}
+
+/* Sign-in panel: deep flag blue, sun glow, banig weave */
+.login-art {
+  background-color: #002a80;
+}
+
+.login-art .brand .logo {
+  color: #fff;
+}
+
+.login-art .m.paid {
+  background: #5b8cff;
+}
+
+.login-art .m.partial {
+  background: linear-gradient(to top, #fcd116 50%, #5a4a0a 50%);
+}
+
+.login-art .m.overdue {
+  background: #ff5a6e;
+}
+
+.login-art .m.unpaid {
+  box-shadow: inset 0 0 0 2px #9db8ff;
+}
+
+@media (max-width: 900px) {
+  .side .nav-btn {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+  }
+
+  .side .nav-btn.active {
+    background: #fff;
+    color: var(--flag-blue);
+    box-shadow: none;
+  }
+
+  .tabbar .active {
+    color: var(--flag-blue);
+  }
+}
+
+.badge.movedout { background: var(--later-bg); color: var(--later-ink); }
