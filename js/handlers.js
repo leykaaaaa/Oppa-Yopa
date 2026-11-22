@@ -15,7 +15,7 @@ const forms = {
         }
 
         const occupancy = db.tenants.filter(
-            t => t.roomId === f.roomId
+            t => t.roomId === f.roomId && !t.movedOut
         ).length;
 
         if (
@@ -84,6 +84,71 @@ const forms = {
         toast('Tenant updated.');
     },
 
+    moveOut(f) {
+        const tenant = tenantOf(f.id);
+
+        if (!tenant) {
+            return;
+        }
+
+        tenant.movedOut = f.date;
+        tenant.depositOutcome = f.outcome;
+        tenant.moveOutNote = (f.note || '').trim();
+
+        const user = db.users.find(u => u.id === tenant.userId);
+
+        if (user) {
+            user.disabled = true;
+        }
+
+        if (f.outcome === 'applied' && tenant.deposit > 0) {
+            let left = +tenant.deposit;
+            const now = curYM();
+
+            monthsOf(tenant)
+                .filter(month => month <= now)
+                .forEach(month => {
+                    const info = monthInfo(tenant, month);
+                    const due = Math.min(left, info.rent - info.paid);
+
+                    if (due > 0.001) {
+                        db.payments.push({
+                            id: uid(),
+                            tenantId: tenant.id,
+                            month,
+                            amount: due,
+                            method: 'deposit',
+                            ref: '',
+                            note: 'Deposit applied on move-out',
+                            status: 'confirmed',
+                            date: new Date().toISOString(),
+                            by: 'owner'
+                        });
+
+                        left -= due;
+                    }
+                });
+        }
+
+        save();
+        closeDlg();
+        render();
+
+        toast(`${tenant.name} moved out.`);
+    },
+
+    renewLease(f) {
+        const tenant = tenantOf(f.id);
+
+        tenant.months += +f.extra;
+
+        save();
+        closeDlg();
+        render();
+
+        toast(`Lease extended to ${fmtDate(leaseEnd(tenant))}.`);
+    },
+
     ownerPay(f) {
         submitPayment(f, true);
     },
@@ -101,6 +166,7 @@ const forms = {
         });
 
         save();
+        closeDlg();
         render();
 
         toast('Room added.');
@@ -336,6 +402,50 @@ const actions = {
         );
     },
 
+    moveOut: d => {
+        openDlg('Move out tenant', moveOutForm(tenantOf(d.id)));
+    },
+
+    renewLease: d => {
+        openDlg('Renew lease', renewForm(tenantOf(d.id)));
+    },
+
+    moveBack: d => {
+        const tenant = tenantOf(d.id);
+        const room = roomOf(tenant.roomId);
+
+        if (!room) {
+            return toast('Their old room no longer exists. Edit the tenant after adding a room.', true);
+        }
+
+        const used = db.tenants.filter(
+            t => t.roomId === tenant.roomId && !t.movedOut
+        ).length;
+
+        if (
+            used >= room.capacity &&
+            !confirm('That room is full now. Move them back in anyway?')
+        ) {
+            return;
+        }
+
+        delete tenant.movedOut;
+        delete tenant.depositOutcome;
+        delete tenant.moveOutNote;
+
+        const user = db.users.find(u => u.id === tenant.userId);
+
+        if (user) {
+            delete user.disabled;
+        }
+
+        save();
+        closeDlg();
+        render();
+
+        toast(`${tenant.name} is back.`);
+    },
+
     delTenant: d => {
         const tenant = tenantOf(d.id);
 
@@ -402,8 +512,12 @@ const actions = {
         );
     },
 
+    addRoom: () => {
+        openDlg('Add a room', roomForm());
+    },
+
     delRoom: d => {
-        if (db.tenants.some(t => t.roomId === d.id)) {
+        if (db.tenants.some(t => t.roomId === d.id && !t.movedOut)) {
             return toast(
                 'Move or remove the tenants in this room first.',
                 true

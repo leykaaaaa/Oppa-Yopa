@@ -71,7 +71,7 @@ const LOGO = `
             width="5"
             height="14"
             rx="1.5"
-            fill="#4ade80"
+            fill="#0038a8"
         />
 
         <rect
@@ -80,7 +80,7 @@ const LOGO = `
             width="5"
             height="14"
             rx="1.5"
-            fill="#fbbf24"
+            fill="#fcd116"
         />
 
         <rect
@@ -89,7 +89,7 @@ const LOGO = `
             width="5"
             height="14"
             rx="1.5"
-            fill="#f87171"
+            fill="#ce1126"
         />
     </svg>
 `;
@@ -358,8 +358,42 @@ function render() {
         `;
     }).join('');
 
+    // Tenants on a phone get a bottom tab bar (shown by CSS under 900px).
+    const TAB_LABEL = {
+        lease: 'Lease',
+        notices: 'Notices',
+        pay: 'Pay',
+        history: 'History',
+        reports: 'Report',
+        account: 'Account'
+    };
+
+    const tabbar = me.role === 'tenant'
+        ? `
+            <nav class="tabbar" aria-label="Tenant">
+                ${nav.map(([id]) => {
+                    const count = navCount(id);
+                    const active = ui.page === id;
+
+                    return `
+                        <button
+                            class="${active ? 'active' : ''}"
+                            data-action="nav"
+                            data-id="${id}"
+                            ${active ? 'aria-current="page"' : ''}
+                        >
+                            ${ico(id)}
+                            <span>${TAB_LABEL[id] || id}</span>
+                            ${count ? `<span class="count">${count}</span>` : ''}
+                        </button>
+                    `;
+                }).join('')}
+            </nav>
+        `
+        : '';
+
     app.innerHTML = `
-        <div class="shell">
+        <div class="shell${me.role === 'tenant' ? ' has-tabbar' : ''}">
             <aside class="side">
                 <div class="brand">
                     ${LOGO}
@@ -399,6 +433,8 @@ function render() {
             <main id="main" tabindex="-1">
                 ${content}
             </main>
+
+            ${tabbar}
         </div>
     `;
 

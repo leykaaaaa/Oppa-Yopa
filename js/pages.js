@@ -7,6 +7,7 @@ function pgDashboard() {
   const ym = curYM();
   let expected = 0, collected = 0, outstanding = 0, overdue = 0;
   db.tenants.forEach(t => {
+    if (t.movedOut) { outstanding += tenantStatus(t).balance; return; }
     if (monthsOf(t).includes(ym)) { 
       const i = monthInfo(t, ym); expected += i.rent; collected += Math.min(i.paid, i.rent); 
     }
@@ -14,18 +15,30 @@ function pgDashboard() {
     if (s.status === 'overdue') overdue++;
   });
   const pct = expected ? Math.min(100, Math.round(collected / expected * 100)) : 0;
+  const monthName = new Date().toLocaleString('en-US', { month: 'long' });
+  const receivedList = db.payments.filter(p => p.status === 'confirmed' && (p.confirmedAt || p.date || '').slice(0, 7) === ym);
+  const received = receivedList.reduce((n, p) => n + (+p.amount || 0), 0);
+  const beds = db.rooms.reduce((n, r) => n + (+r.capacity || 0), 0);
+  const active = db.tenants.filter(t => !t.movedOut);
+  const filled = active.length;
   const overdueList = db.tenants.filter(t => tenantStatus(t).status === 'overdue');
   const overdueTotal = overdueList.reduce((n, t) => n + tenantStatus(t).balance, 0);
   const overdueNames = overdueList.slice(0, 2).map(t => `<b>${esc(t.name)}</b>`).join(' and ') + (overdueList.length > 2 ? ` and ${overdueList.length - 2} more` : '');
   const attention = overdueList.length
     ? `<div class="attention"><div><h3>${peso(overdueTotal)} is overdue</h3><p>${overdueNames} ${overdueList.length === 1 ? 'has' : 'have'} an overdue balance.</p></div>
-        <div class="actions">${overdueList.length === 1 ? `<button class="btn primary" data-action="recordPay" data-id="${overdueList[0].id}">Record payment</button>` : '<button class="btn primary" data-action="goto" data-id="tenants">View tenants</button>'}</div></div>`
+        <div class="actions"><button class="btn" data-action="goto" data-id="announce">Send reminder</button>${overdueList.length === 1 ? `<button class="btn primary" data-action="recordPay" data-id="${overdueList[0].id}">Record payment</button>` : '<button class="btn primary" data-action="goto" data-id="tenants">View tenants</button>'}</div></div>`
     : outstanding > 0
       ? `<div class="attention warn"><div><h3>${peso(outstanding)} still to collect</h3><p>Nothing is overdue yet.</p></div></div>`
-      : db.tenants.length
+      : active.length
         ? '<div class="attention good"><div><h3>Everyone is paid up</h3><p>No balances are waiting to be collected.</p></div></div>'
         : '';
   const pend = db.payments.filter(p => p.status === 'pending').sort((a, b) => a.date.localeCompare(b.date));
+  const endingList = active.filter(t => { const l = leaseDays(t); return l.state === 'ended' || (l.state !== 'upcoming' && l.left <= 30); });
+  const endingHTML = endingList.slice(0, 3).map(t => {
+    const l = leaseDays(t);
+    return `<div class="attention warn"><div><h3>${esc(t.name)}’s lease ${l.state === 'ended' ? 'has ended' : 'ends soon'}</h3><p>${esc(roomName(t.roomId))} · ${leaseDetail(t)}</p></div>
+      <div class="actions"><button class="btn" data-action="renewLease" data-id="${t.id}">Renew lease</button><button class="btn primary" data-action="moveOut" data-id="${t.id}">Move out</button></div></div>`;
+  }).join('') + (endingList.length > 3 ? `<p class="muted small">…and ${endingList.length - 3} more. See Tenants → Lease ending soon.</p>` : '');
   const open = db.complaints.filter(c => c.status === 'open').sort((a, b) => a.date.localeCompare(b.date));
   const payItems = pend.slice(0, 5).map(p => {
     const t = tenantOf(p.tenantId);
@@ -36,7 +49,7 @@ function pgDashboard() {
     return `<li class="row-item"><div><b>${esc(t ? t.name : 'A tenant')}</b> reported “${esc(c.subject)}”<div class="muted small">${esc(c.category)}</div></div><button class="btn sm" data-action="goto" data-id="complaints">Read</button></li>`;
   }).join('') + (open.length > 3 ? `<li class="row-item"><span class="muted">${open.length - 3} more reports</span><button class="btn sm" data-action="goto" data-id="complaints">See all</button></li>` : '');
   const waiting = payItems || repItems ? `<section class="panel"><h3>Waiting for you</h3><ul class="rows">${payItems}${repItems}</ul></section>` : '';
-  const rows = db.tenants.map(t => {
+  const rows = active.map(t => {
     const s = tenantStatus(t), i = monthsOf(t).includes(ym) ? monthInfo(t, ym) : null;
     return `<tr><td><b>${esc(t.name)}</b><div class="muted small">${esc(roomName(t.roomId))}</div></td>
       <td>${stripHTML(t, 6)}</td><td class="num">${i ? `${peso(i.paid)} of ${peso(i.rent)}` : '—'}</td>
@@ -45,9 +58,13 @@ function pgDashboard() {
   }).join('');
   return `<div class="page-head"><div><h2>Dashboard</h2><p>${ymLabel(ym)}</p></div></div>
   ${attention}
-  <section class="summary"><div class="sum-main"><div class="k">Collected in ${new Date().toLocaleString('en-US', { month: 'long' })}</div><div class="big">${peso(collected)}</div>
-    <div class="meter" role="img" aria-label="${pct}% collected"><i style="width:${pct}%"></i></div><div class="sub">${pct}% of ${peso(expected)} expected</div></div>
-    <dl class="sum-facts"><div><dt>Outstanding</dt><dd>${peso(outstanding)}</dd></div><div><dt>Overdue</dt><dd class="${overdue ? 'neg' : ''}">${plural(overdue, 'tenant')}</dd></div><div><dt>Tenants</dt><dd>${db.tenants.length}</dd></div></dl></section>
+  ${endingHTML}
+  <section class="kpis" aria-label="This month">
+    <div class="kpi"><div class="k">Received in ${monthName}</div><div class="v">${peso(received)}</div><div class="s">${plural(receivedList.length, 'payment')} confirmed</div></div>
+    <div class="kpi"><div class="k">${monthName} rent</div><div class="v">${peso(collected)} <small>of ${peso(expected)}</small></div><div class="meter" role="img" aria-label="${pct}% collected"><i style="width:${pct}%"></i></div></div>
+    <div class="kpi"><div class="k">Outstanding</div><div class="v ${outstanding ? 'neg' : ''}">${peso(outstanding)}</div><div class="s">${plural(overdue, 'tenant')} overdue</div></div>
+    <div class="kpi"><div class="k">Beds filled</div><div class="v">${filled} <small>of ${beds}</small></div><div class="s">${plural(db.rooms.length, 'room')}</div></div>
+  </section>
   ${waiting}
   <section class="panel flush"><div class="panel-head"><h3>Who has paid</h3>${legendHTML()}</div>
   <div class="table-wrap">${rows ? `<table><thead><tr><th>Tenant</th><th>Rent by month</th><th class="num">This month</th><th class="num">Balance</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : empty('No tenants yet. Go to Tenants to add one.')}</div></section>`;
@@ -59,7 +76,7 @@ function pgTenants() {
     <button class="btn primary" data-action="addTenant">+ Add tenant</button></div>
   <div class="card"><div class="toolbar">
     <input data-live="tq" value="${esc(ui.tq)}" placeholder="Search name or room…" aria-label="Search tenants">
-    <select data-live="tf" aria-label="Filter status">${['all', 'paid', 'partial', 'overdue', 'unpaid'].map(v => `<option value="${v}" ${ui.tf === v ? 'selected' : ''}>${v === 'all' ? 'All statuses' : STATUS_LABEL[v]}</option>`).join('')}</select>
+    <select data-live="tf" aria-label="Filter status">${[['all', 'All current'], ['paid', 'Paid'], ['partial', 'Partial'], ['overdue', 'Overdue'], ['unpaid', 'Unpaid'], ['ending', 'Lease ending soon'], ['movedout', 'Past tenants']].map(([v, label]) => `<option value="${v}" ${ui.tf === v ? 'selected' : ''}>${label}</option>`).join('')}</select>
   </div><div class="table-wrap" id="rows">${tenantRows()}</div></div>`;
 }
 function tenantRows() {
@@ -67,21 +84,25 @@ function tenantRows() {
   const list = db.tenants.filter(t => {
     const s = tenantStatus(t);
     const okQ = !q || t.name.toLowerCase().includes(q) || roomName(t.roomId).toLowerCase().includes(q);
-    const okF = ui.tf === 'all' || (ui.tf === 'partial' ? s.partial : s.status === ui.tf);
+    const l = leaseDays(t);
+    const ends = l.state === 'ended' || (l.state !== 'upcoming' && l.left <= 30);
+    const okF = ui.tf === 'movedout'
+      ? !!t.movedOut
+      : !t.movedOut && (ui.tf === 'all' || (ui.tf === 'ending' ? ends : ui.tf === 'partial' ? s.partial : s.status === ui.tf));
     return okQ && okF;
   });
-  if (!list.length) return empty('No tenants match.');
+  if (!list.length) return empty(ui.tf === 'movedout' ? 'No past tenants yet.' : 'No tenants match.');
   return `<table><thead><tr><th>Tenant</th><th>Room</th><th class="num">Rent</th><th>Lease</th><th class="num">Balance</th><th>Status</th><th></th></tr></thead><tbody>${list.map(t => {
     const s = tenantStatus(t); const u = db.users.find(x => x.id === t.userId);
     return `<tr class="click" data-action="viewTenant" data-id="${t.id}"><td><b>${esc(t.name)}</b><div class="muted small">@${esc(u ? u.username : '?')} · ${esc(t.contact)}</div></td><td>${esc(roomName(t.roomId))}</td>
-      <td class="num">${peso(t.rent)}</td><td>Until ${fmtDate(leaseEnd(t))}<div class="muted small">${leaseShort(t)}</div></td>
+      <td class="num">${peso(t.rent)}</td><td>${t.movedOut ? 'Moved out ' + fmtDate(t.movedOut) : 'Until ' + fmtDate(leaseEnd(t))}<div class="muted small">${t.movedOut ? esc(DEPOSIT[t.depositOutcome] || '') : leaseShort(t)}</div></td>
       <td class="num">${s.balance > 0 ? peso(s.balance) : '—'}</td><td>${statusBadge(s)}</td>
       <td><button class="btn sm" data-action="viewTenant" data-id="${t.id}">Open</button></td></tr>`;
   }).join('')}</tbody></table>`;
 }
 function tenantForm(t) {
   const edit = !!t;
-  const roomOpts = db.rooms.map(r => `<option value="${r.id}" data-rate="${r.rate}" ${t && t.roomId === r.id ? 'selected' : ''}>${esc(r.name)} (${db.tenants.filter(x => x.roomId === r.id).length}/${r.capacity})</option>`).join('');
+  const roomOpts = db.rooms.map(r => `<option value="${r.id}" data-rate="${r.rate}" ${t && t.roomId === r.id ? 'selected' : ''}>${esc(r.name)} (${db.tenants.filter(x => x.roomId === r.id && !x.movedOut).length}/${r.capacity})</option>`).join('');
   if (!db.rooms.length) return '<p>Please add a room first (Rooms page).</p>';
   const first = db.rooms[0];
   return `<form data-form="${edit ? 'editTenant' : 'addTenant'}"><input type="hidden" name="id" value="${edit ? t.id : ''}">
@@ -113,24 +134,65 @@ function credDialog(name, username, password) {
 }
 function ledgerHTML(t) {
   const pays = db.payments.filter(p => p.tenantId === t.id).sort((a, b) => b.date.localeCompare(a.date));
-  return `<div class="actions" style="margin-bottom:18px"><button class="btn primary sm" data-action="recordPay" data-id="${t.id}">Record payment</button><button class="btn sm" data-action="editTenant" data-id="${t.id}">Edit details</button><button class="btn sm" data-action="resetPw" data-id="${t.id}">Reset password</button><button class="btn sm danger" data-action="delTenant" data-id="${t.id}">Delete tenant</button></div>
-  <dl class="kv"><dt>Room</dt><dd>${esc(roomName(t.roomId))}</dd><dt>Rent</dt><dd>${peso(t.rent)} / month, due every ${t.dueDay}th</dd><dt>Lease</dt><dd>${fmtDate(t.start)} – ${fmtDate(leaseEnd(t))}</dd><dt>Duration</dt><dd>${leaseDetail(t)}</dd><dt>Deposit</dt><dd>${peso(t.deposit)}</dd><dt>Contact</dt><dd>${esc(t.contact)}</dd></dl>
+  const out = !!t.movedOut, st = tenantStatus(t), l = leaseDays(t);
+  const ends = !out && (l.state === 'ended' || (l.state !== 'upcoming' && l.left <= 30));
+  const notice = out
+    ? `<div class="attention ${st.balance > 0 ? '' : 'good'}" style="margin-bottom:14px"><div><h3>Moved out on ${fmtDate(t.movedOut)}</h3><p>${st.balance > 0 ? `Still owes ${peso(st.balance)}.` : 'No balance owed.'} Deposit: ${esc(DEPOSIT[t.depositOutcome] || '—')}.</p></div></div>`
+    : ends ? `<div class="attention warn" style="margin-bottom:14px"><div><h3>Lease ${l.state === 'ended' ? 'has ended' : 'ends soon'}</h3><p>${leaseDetail(t)}</p></div></div>` : '';
+  const btns = out
+    ? `${st.balance > 0 ? `<button class="btn primary sm" data-action="recordPay" data-id="${t.id}">Record payment</button>` : ''}<button class="btn sm" data-action="moveBack" data-id="${t.id}">Move back in</button><button class="btn sm danger" data-action="delTenant" data-id="${t.id}">Delete records</button>`
+    : `<button class="btn primary sm" data-action="recordPay" data-id="${t.id}">Record payment</button><button class="btn sm" data-action="renewLease" data-id="${t.id}">Renew lease</button><button class="btn sm" data-action="moveOut" data-id="${t.id}">Move out</button><button class="btn sm" data-action="editTenant" data-id="${t.id}">Edit details</button><button class="btn sm" data-action="resetPw" data-id="${t.id}">Reset password</button><button class="btn sm danger" data-action="delTenant" data-id="${t.id}">Delete tenant</button>`;
+  return `${notice}<div class="actions" style="margin-bottom:18px">${btns}</div>
+  <dl class="kv"><dt>Room</dt><dd>${esc(roomName(t.roomId))}</dd><dt>Rent</dt><dd>${peso(t.rent)} / month, due every ${t.dueDay}th</dd><dt>Lease</dt><dd>${fmtDate(t.start)} – ${fmtDate(leaseEnd(t))}</dd><dt>Duration</dt><dd>${leaseDetail(t)}</dd><dt>Deposit</dt><dd>${peso(t.deposit)}${out ? ' · ' + esc(DEPOSIT[t.depositOutcome] || '—') : ''}</dd>${out ? `<dt>Moved out</dt><dd>${fmtDate(t.movedOut)}${t.moveOutNote ? ' · ' + esc(t.moveOutNote) : ''}</dd>` : ''}<dt>Contact</dt><dd>${esc(t.contact)}</dd></dl>
   <h3 class="sub">Lease calendar</h3>${calendarHTML(t, false)}${legendHTML()}
   <h3 class="sub">Payment history</h3><div class="table-wrap">${paymentTable(pays, false, false)}</div>`;
 }
 
+function moveOutForm(t) {
+  const s = tenantStatus(t);
+  const opts = Object.entries(DEPOSIT).map(([k, v]) => `<option value="${k}" ${k === (t.deposit > 0 ? 'returned' : 'none') ? 'selected' : ''}>${v}</option>`).join('');
+  return `<form data-form="moveOut"><input type="hidden" name="id" value="${t.id}">
+    <p>Moving out <b>${esc(t.name)}</b> frees their bed in ${esc(roomName(t.roomId))}, stops charging rent after the move-out month and turns off their login. Payment records are kept.</p>
+    <div class="grid2"><div class="field"><label for="mo-date">Move-out date</label><input name="date" id="mo-date" type="date" required min="${t.start}" value="${todayStr()}"></div>
+    <div class="field"><label for="mo-dep">Deposit (${peso(t.deposit)})</label><select name="outcome" id="mo-dep">${opts}</select></div></div>
+    <div class="field"><label for="mo-note">Note (optional)</label><input name="note" id="mo-note" placeholder="e.g. Found a place closer to work"></div>
+    <p class="hint">Current balance: ${peso(s.balance)}. Rent already paid for months after the move-out month drops off the ledger, so refund it yourself.</p>
+    <div class="form-actions"><button class="btn primary block">Confirm move-out</button></div></form>`;
+}
+function renewForm(t) {
+  return `<form data-form="renewLease"><input type="hidden" name="id" value="${t.id}">
+    <p><b>${esc(t.name)}</b>’s lease runs until <b>${fmtDate(leaseEnd(t))}</b>. Extend it by:</p>
+    <div class="field"><label for="rn-ext">Extend by</label><select name="extra" id="rn-ext"><option value="3">3 months</option><option value="6">6 months</option><option value="12" selected>12 months</option></select></div>
+    <div class="form-actions"><button class="btn primary block">Renew lease</button></div></form>`;
+}
+
 /* --- Rooms --- */
 function pgRooms() {
-  return `<div class="page-head"><div><h2>Rooms</h2><p>Set up rooms, capacity and standard rates.</p></div></div>
-  <div class="two"><div class="card"><h3>Add a room</h3><form data-form="addRoom">
-    <div class="field"><label>Room name</label><input name="name" required placeholder="e.g. Room 3"></div>
-    <div class="grid2"><div class="field"><label>Capacity (beds)</label><input name="capacity" type="number" min="1" required value="2"></div>
-    <div class="field"><label>Rate / person (₱)</label><input name="rate" type="number" min="0" step="0.01" required></div></div>
-    <button class="btn primary">Add room</button></form></div>
-  <div class="card"><h3>Your rooms</h3>${db.rooms.length ? `<div class="table-wrap"><table><thead><tr><th>Room</th><th>Occupancy</th><th class="num">Rate</th><th></th></tr></thead><tbody>${db.rooms.map(r => {
-    const occ = db.tenants.filter(t => t.roomId === r.id);
-    return `<tr><td><b>${esc(r.name)}</b></td><td><span class="beds" role="img" aria-label="${occ.length} of ${r.capacity} beds taken">${Array.from({ length: r.capacity }, (_, k) => `<i class="${k < occ.length ? 'on' : ''}"></i>`).join('')}</span> <span class="small">${occ.length}/${r.capacity}</span><div class="muted small">${occ.map(t => esc(t.name)).join(', ') || 'Vacant'}</div></td><td class="num">${peso(r.rate)}</td><td><button class="btn sm danger" data-action="delRoom" data-id="${r.id}">Delete</button></td></tr>`;
-  }).join('')}</tbody></table></div>` : empty('No rooms yet.')}</div></div>`;
+  const totalBeds = db.rooms.reduce((n, r) => n + (+r.capacity || 0), 0);
+  const cards = db.rooms.map(r => {
+    const occ = db.tenants.filter(t => t.roomId === r.id && !t.movedOut);
+    const free = Math.max(r.capacity - occ.length, 0);
+    const slots = Array.from({ length: Math.max(r.capacity, occ.length) }, (_, k) => {
+      const t = occ[k];
+      return t
+        ? `<li class="slot on"><span class="av">${esc(initials(t.name))}</span><b>${esc(t.name)}</b>${statusBadge(tenantStatus(t))}</li>`
+        : `<li class="slot">Bed ${k + 1} · open</li>`;
+    }).join('');
+    const tag = !occ.length ? '<span class="badge"><i></i>Vacant</span>' : free ? `<span class="badge partial"><i></i>${plural(free, 'bed')} free</span>` : '<span class="badge paid"><i></i>Full</span>';
+    return `<article class="room"><div class="room-head"><div><h4>${esc(r.name)}</h4><div class="muted small">${peso(r.rate)} per person</div></div>${tag}</div>
+      <ul class="slots">${slots}</ul>
+      <div class="actions"><button class="btn sm" data-action="addTenant">Add tenant</button><button class="btn sm danger" data-action="delRoom" data-id="${r.id}">Delete</button></div></article>`;
+  }).join('');
+  return `<div class="page-head"><div><h2>Rooms</h2><p>${plural(db.rooms.length, 'room')} · ${plural(totalBeds, 'bed')} · ${db.tenants.filter(t => !t.movedOut).length} filled</p></div>
+    <button class="btn primary" data-action="addRoom">+ Add room</button></div>
+  <section class="rooms-grid" aria-label="Your rooms">${cards || empty('No rooms yet. Use Add room to create one.')}</section>`;
+}
+function roomForm() {
+  return `<form data-form="addRoom">
+    <div class="field"><label for="rm-name">Room name</label><input id="rm-name" name="name" required placeholder="e.g. Room 3" autofocus></div>
+    <div class="grid2"><div class="field"><label for="rm-cap">Beds</label><input id="rm-cap" name="capacity" type="number" min="1" required placeholder="e.g. 3"></div>
+    <div class="field"><label for="rm-rate">Rate / person (₱)</label><input id="rm-rate" name="rate" type="number" min="0" step="0.01" required></div></div>
+    <div class="form-actions"><button class="btn primary block">Add room</button></div></form>`;
 }
 
 /* --- Payments (owner) --- */

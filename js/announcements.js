@@ -1,4 +1,3 @@
-
 'use strict';
 
 // Get announcements visible to a specific tenant.
@@ -13,8 +12,9 @@ const annFor = tenant =>
 // Get tenants who should receive an announcement.
 const annTargets = announcement =>
     db.tenants.filter(tenant =>
-        !announcement.roomId ||
-        tenant.roomId === announcement.roomId
+        !tenant.movedOut &&
+        (!announcement.roomId ||
+        tenant.roomId === announcement.roomId)
     );
 
 // Get the announcement audience label.

@@ -1,4 +1,3 @@
-
 'use strict';
 
 /* =========================================================
@@ -122,7 +121,8 @@ const slug = value =>
 const METHOD = {
     cash: 'Cash',
     gcash: 'GCash',
-    bank: 'Bank transfer'
+    bank: 'Bank transfer',
+    deposit: 'Deposit applied'
 };
 
 const STATUS_LABEL = {
@@ -137,6 +137,7 @@ const STATUS_LABEL = {
     open: 'Open',
     in_progress: 'In progress',
     resolved: 'Resolved',
+    movedout: 'Moved out',
     important: 'Important',
     new: 'New'
 };
@@ -358,11 +359,28 @@ const ui = {
 
 
 // Get all months covered by a tenant's lease.
-const monthsOf = tenant =>
-    Array.from(
+// A tenant who moved out is only charged up to the move-out month.
+const monthsOf = tenant => {
+    const all = Array.from(
         { length: tenant.months },
         (_, index) => addMonths(tenant.start.slice(0, 7), index)
     );
+
+    if (!tenant.movedOut) {
+        return all;
+    }
+
+    const last = tenant.movedOut.slice(0, 7);
+
+    return all.filter(month => month <= last);
+};
+
+const DEPOSIT = {
+    returned: 'Returned to tenant',
+    applied: 'Applied to unpaid rent',
+    kept: 'Kept by owner',
+    none: 'No deposit'
+};
 
 // Find a room by its ID.
 const roomOf = id =>
@@ -445,6 +463,10 @@ function leaseDays(tenant) {
 
 // Get a short lease status.
 function leaseShort(tenant) {
+    if (tenant.movedOut) {
+        return 'Moved out';
+    }
+
     const lease = leaseDays(tenant);
 
     if (lease.state === 'active') {
@@ -475,6 +497,10 @@ function leaseDetail(tenant) {
         description = `Starts in ${plural(lease.startsIn, 'day')}`;
     } else {
         description = `Ended ${plural(lease.endedAgo, 'day')} ago`;
+    }
+
+    if (tenant.movedOut) {
+        description = `Moved out on ${fmtDate(tenant.movedOut)}`;
     }
 
     return `
@@ -671,7 +697,7 @@ function tenantStatus(tenant) {
     const hasStatus = status =>
         infos.some(info => info.status === status);
 
-    const status = !infos.length
+    let status = !infos.length
         ? 'upcoming'
         : hasStatus('overdue')
             ? 'overdue'
@@ -680,6 +706,10 @@ function tenantStatus(tenant) {
                 : hasStatus('unpaid')
                     ? 'unpaid'
                     : 'paid';
+
+    if (tenant.movedOut) {
+        status = 'movedout';
+    }
 
     return {
         status,
@@ -702,7 +732,11 @@ const infoBadge = info =>
     );
 
 const statusBadge = status =>
-    badge(
+    status.status === 'movedout'
+        ? (status.balance > 0
+            ? badge('overdue', `Moved out · owes ${peso(status.balance)}`)
+            : badge('movedout'))
+        : badge(
         status.status,
         status.status === 'overdue' && status.partial
             ? 'Overdue (partial)'
@@ -884,6 +918,17 @@ function login(formData) {
         return toast('Wrong username or password.', true);
     }
 
+    const record = user.role === 'tenant'
+        ? db.tenants.find(item => item.userId === user.id)
+        : null;
+
+    if (user.disabled || (record && record.movedOut)) {
+        return toast(
+            'This account is no longer active. Please ask your owner.',
+            true
+        );
+    }
+
     const previousLogin = user.lastLogin || null;
 
     me = user;
@@ -1005,7 +1050,7 @@ function loginView() {
                     Sign in
                 </button>
 
-                <details class="demo">
+                <details class="demo" open>
                     <summary>Demo accounts</summary>
 
                     <p>
