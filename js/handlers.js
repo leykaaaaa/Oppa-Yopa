@@ -130,6 +130,8 @@ const forms = {
                 });
         }
 
+        tenant.writtenOffBalance = tenantStatus(tenant).balance;
+
         save();
         closeDlg();
         render();
@@ -490,6 +492,7 @@ const actions = {
         delete tenant.movedOut;
         delete tenant.depositOutcome;
         delete tenant.moveOutNote;
+        delete tenant.writtenOffBalance;
 
         const user = db.users.find(u => u.id === tenant.userId);
 

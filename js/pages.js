@@ -5,9 +5,9 @@
    ===================================================================== */
 function pgDashboard() {
   const ym = curYM();
-  let expected = 0, collected = 0, outstanding = 0, overdue = 0;
+  let expected = 0, collected = 0, outstanding = 0, losses = 0, overdue = 0;
   db.tenants.forEach(t => {
-    if (t.movedOut) { outstanding += tenantStatus(t).balance; return; }
+    if (t.movedOut) { losses += tenantStatus(t).loss; return; }
     if (monthsOf(t).includes(ym)) { 
       const i = monthInfo(t, ym); expected += i.rent; collected += Math.min(i.paid, i.rent); 
     }
@@ -59,10 +59,11 @@ function pgDashboard() {
   return `<div class="page-head"><div><h2>Dashboard</h2><p>${ymLabel(ym)}</p></div></div>
   ${attention}
   ${endingHTML}
-  <section class="kpis" aria-label="This month">
+  <section class="kpis" aria-label="Financial summary">
     <div class="kpi"><div class="k">Received in ${monthName}</div><div class="v">${peso(received)}</div><div class="s">${plural(receivedList.length, 'payment')} confirmed</div></div>
     <div class="kpi"><div class="k">${monthName} rent</div><div class="v">${peso(collected)} <small>of ${peso(expected)}</small></div><div class="meter" role="img" aria-label="${pct}% collected"><i style="width:${pct}%"></i></div></div>
     <div class="kpi"><div class="k">Outstanding</div><div class="v ${outstanding ? 'neg' : ''}">${peso(outstanding)}</div><div class="s">${plural(overdue, 'tenant')} overdue</div></div>
+    <div class="kpi"><div class="k">Losses (all time)</div><div class="v ${losses ? 'neg' : ''}">${peso(losses)}</div><div class="s">Written off on move-out</div></div>
     <div class="kpi"><div class="k">Beds filled</div><div class="v">${filled} <small>of ${beds}</small></div><div class="s">${plural(db.rooms.length, 'room')}</div></div>
   </section>
   ${waiting}
@@ -137,7 +138,7 @@ function ledgerHTML(t) {
   const out = !!t.movedOut, st = tenantStatus(t), l = leaseDays(t);
   const ends = !out && (l.state === 'ended' || (l.state !== 'upcoming' && l.left <= 30));
   const notice = out
-    ? `<div class="attention ${st.balance > 0 ? '' : 'good'}" style="margin-bottom:14px"><div><h3>Moved out on ${fmtDate(t.movedOut)}</h3><p>${st.balance > 0 ? `Still owes ${peso(st.balance)}.` : 'No balance owed.'} Deposit: ${esc(DEPOSIT[t.depositOutcome] || '—')}.</p></div></div>`
+    ? `<div class="attention ${st.loss > 0 ? 'warn' : st.balance > 0 ? '' : 'good'}" style="margin-bottom:14px"><div><h3>Moved out on ${fmtDate(t.movedOut)}</h3><p>${st.loss > 0 ? `${peso(st.loss)} written off as a loss.` : st.balance > 0 ? `Still owes ${peso(st.balance)}.` : 'No balance owed.'} Deposit: ${esc(DEPOSIT[t.depositOutcome] || '—')}.</p></div></div>`
     : ends ? `<div class="attention warn" style="margin-bottom:14px"><div><h3>Lease ${l.state === 'ended' ? 'has ended' : 'ends soon'}</h3><p>${leaseDetail(t)}</p></div></div>` : '';
   const btns = out
     ? `${st.balance > 0 ? `<button class="btn primary sm" data-action="recordPay" data-id="${t.id}">Record payment</button>` : ''}<button class="btn sm" data-action="moveBack" data-id="${t.id}">Move back in</button><button class="btn sm danger" data-action="delTenant" data-id="${t.id}">Delete records</button>`
@@ -150,13 +151,14 @@ function ledgerHTML(t) {
 
 function moveOutForm(t) {
   const s = tenantStatus(t);
-  const opts = Object.entries(DEPOSIT).map(([k, v]) => `<option value="${k}" ${k === (t.deposit > 0 ? 'returned' : 'none') ? 'selected' : ''}>${v}</option>`).join('');
+  const defaultOutcome = t.deposit <= 0 ? 'none' : s.balance > 0 ? 'applied' : 'returned';
+  const opts = Object.entries(DEPOSIT).map(([k, v]) => `<option value="${k}" ${k === defaultOutcome ? 'selected' : ''}>${v}</option>`).join('');
   return `<form data-form="moveOut"><input type="hidden" name="id" value="${t.id}">
     <p>Moving out <b>${esc(t.name)}</b> frees their bed in ${esc(roomName(t.roomId))}, stops charging rent after the move-out month and turns off their login. Payment records are kept.</p>
     <div class="grid2"><div class="field"><label for="mo-date">Move-out date</label><input name="date" id="mo-date" type="date" required min="${t.start}" value="${todayStr()}"></div>
     <div class="field"><label for="mo-dep">Deposit (${peso(t.deposit)})</label><select name="outcome" id="mo-dep">${opts}</select></div></div>
     <div class="field"><label for="mo-note">Note (optional)</label><input name="note" id="mo-note" placeholder="e.g. Found a place closer to work"></div>
-    <p class="hint">Current balance: ${peso(s.balance)}. Rent already paid for months after the move-out month drops off the ledger, so refund it yourself.</p>
+    <p class="hint">Current balance: ${peso(s.balance)}. Any balance remaining after the move-out date and selected deposit treatment is automatically written off as a loss.</p>
     <div class="form-actions"><button class="btn primary block">Confirm move-out</button></div></form>`;
 }
 function renewForm(t) {

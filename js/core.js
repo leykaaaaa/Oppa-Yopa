@@ -711,12 +711,16 @@ function tenantStatus(tenant) {
         status = 'movedout';
     }
 
+    const grossBalance = infos.reduce(
+        (total, info) => total + info.balance,
+        0
+    );
+    const loss = Math.max(Number(tenant.writtenOffBalance) || 0, 0);
+
     return {
         status,
-        balance: infos.reduce(
-            (total, info) => total + info.balance,
-            0
-        ),
+        balance: Math.max(+(grossBalance - loss).toFixed(2), 0),
+        loss,
         partial: infos.some(info => info.partial),
         infos
     };
@@ -733,7 +737,9 @@ const infoBadge = info =>
 
 const statusBadge = status =>
     status.status === 'movedout'
-        ? (status.balance > 0
+        ? (status.loss > 0
+            ? badge('overdue', `Moved out · loss ${peso(status.loss)}`)
+            : status.balance > 0
             ? badge('overdue', `Moved out · owes ${peso(status.balance)}`)
             : badge('movedout'))
         : badge(
