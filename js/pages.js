@@ -122,7 +122,7 @@ function tenantForm(t) {
       <div class="field"><label for="tf-months">Lease length (months)</label><input name="months" id="tf-months" type="number" min="1" max="60" required value="${edit ? t.months : 12}"></div></div>
     </fieldset>
     ${edit ? '' : `<fieldset class="form-sec"><legend>Login account</legend>
-      <p class="hint">The tenant uses these to sign in. You can share the details after saving.</p>
+      <p class="hint">The tenant uses these to sign in. Usernames must be unique, including for past tenants; full names can repeat. You can share the details after saving.</p>
       <div class="grid2"><div class="field"><label for="tf-user">Username</label><input name="username" id="tf-user" required autocomplete="off"></div>
       <div class="field"><label for="tf-pass">Temporary password</label><input name="password" id="tf-pass" value="${randPass()}" required minlength="6" autocomplete="off"><span class="hint">At least 6 characters.</span></div></div>
     </fieldset>`}

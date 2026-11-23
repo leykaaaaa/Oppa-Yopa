@@ -11,7 +11,10 @@ const forms = {
         const username = f.username.trim().toLowerCase();
 
         if (db.users.some(u => u.username === username)) {
-            return toast('That username is already taken.', true);
+            return toast(
+                'That username is already taken, even by a past tenant. Tenant names can repeat; choose a different username.',
+                true
+            );
         }
 
         const occupancy = db.tenants.filter(
